@@ -42,21 +42,32 @@ setToString p xs = "{" ++ List.intercalate "," (map p xs) ++ "}"
 --------------------------------------------------------------------------------
 
 data Operation =
-    Modexp
+    Factor
+  | Modexp
   | Timelock
   deriving Show
 
 operations :: [Operation]
-operations = [Modexp,Timelock]
+operations = [Factor,Modexp,Timelock]
 
 operationToString :: Operation -> String
 operationToString oper =
    case oper of
+     Factor -> "factor"
      Modexp -> "modexp"
      Timelock -> "timelock"
 
+operationsToString :: [Operation] -> String
+operationsToString = setToString operationToString
+
 stringToOperation :: String -> Operation
 stringToOperation = getPrefixString "operation" operationToString operations
+
+getOperation :: [String] -> (Operation,[String])
+getOperation args =
+    case args of
+      [] -> usage "no operation specified"
+      h : t -> (stringToOperation h, t)
 
 --------------------------------------------------------------------------------
 -- Algorithms
@@ -65,16 +76,29 @@ stringToOperation = getPrefixString "operation" operationToString operations
 data Algorithm =
     Modular
   | Montgomery
+  | Williams
   deriving Show
 
 algorithms :: [Algorithm]
-algorithms = [Modular,Montgomery]
+algorithms = [Modular,Montgomery,Williams]
+
+possibleAlgorithms :: Operation -> [Algorithm]
+possibleAlgorithms Factor = [Williams]
+possibleAlgorithms Modexp = [Modular,Montgomery]
+possibleAlgorithms Timelock = [Modular,Montgomery]
+
+defaultAlgorithm :: Operation -> Algorithm
+defaultAlgorithm = last . possibleAlgorithms
 
 algorithmToString :: Algorithm -> String
 algorithmToString oper =
    case oper of
      Modular -> "modular"
      Montgomery -> "montgomery"
+     Williams -> "williams"
+
+algorithmsToString :: [Algorithm] -> String
+algorithmsToString = setToString algorithmToString
 
 stringToAlgorithm :: String -> Algorithm
 stringToAlgorithm = getPrefixString "algorithm" algorithmToString algorithms
@@ -106,26 +130,16 @@ oddInputNatural :: InputNatural -> Random.Random -> Natural
 oddInputNatural (Fixed n) _ = n
 oddInputNatural (Width w) r = randomOdd w r
 
-getInputs ::
-    Operation -> InputNatural -> Maybe InputNatural -> Maybe InputNatural ->
-    Random.Random -> (Natural,Natural,Natural)
-getInputs oper wn wx wk r =
-    (n,x,k)
-  where
-    n = oddInputNatural wn rn
+compositeInputNatural :: InputNatural -> Random.Random -> Natural
+compositeInputNatural (Fixed n) _ = n
+compositeInputNatural (Width w) r = undefined
 
-    x = case wx of
-          Nothing -> Uniform.random n rx
-          Just w -> uniformInputNatural w rx
-
-    k = case wk of
-          Nothing -> case oper of
-                       Modexp -> Uniform.random n rk
-                       Timelock -> 1000000
-          Just w -> uniformInputNatural w rk
-
-    (rn,r') = Random.split r
-    (rx,rk) = Random.split r'
+getInput :: Operation -> String -> Maybe InputNatural -> InputNatural
+getInput oper s m =
+    case m of
+      Just n -> n
+      Nothing -> usage $ "specify " ++ s ++ " parameter for " ++
+                         operationToString oper ++ " operation"
 
 --------------------------------------------------------------------------------
 -- Options
@@ -134,99 +148,166 @@ getInputs oper wn wx wk r =
 data Options = Options
     {optOperation :: Operation,
      optAlgorithm :: Algorithm,
-     optModulus :: InputNatural,
-     optBase :: Maybe InputNatural,
-     optExponent :: Maybe InputNatural}
+     optN :: Maybe InputNatural,
+     optX :: Maybe InputNatural,
+     optK :: Maybe InputNatural}
   deriving Show
 
-defaultOptions :: Options
-defaultOptions =
+nullOptions :: Options
+nullOptions =
   Options
-    {optOperation = Modexp,
-     optAlgorithm = Montgomery,
-     optModulus = Width 50,
-     optBase = Nothing,
-     optExponent = Nothing}
+    {optOperation = Factor,
+     optAlgorithm = Williams,
+     optN = Nothing,
+     optX = Nothing,
+     optK = Nothing}
 
 options :: [OptDescr (Options -> Options)]
 options =
-    [Option [] ["operation"]
-       (ReqArg (\s opts -> opts {optOperation = stringToOperation s}) "OPERATION")
-       "select operation",
-     Option [] ["algorithm"]
-       (ReqArg (\s opts -> opts {optAlgorithm = stringToAlgorithm s}) "ALGORITHM")
+    [Option [] ["algorithm"]
+       (algorithmArg (\alg opts -> opts {optAlgorithm = alg}))
        "select algorithm",
-     Option [] ["modulus"]
-       (ReqArg (\s opts -> opts {optModulus = stringToInputNatural s}) "N")
-       "select modulus",
-     Option [] ["base"]
-       (ReqArg (\s opts -> opts {optBase = Just (stringToInputNatural s)}) "N")
-       "select base",
-     Option [] ["exponent"]
-       (ReqArg (\s opts -> opts {optExponent = Just (stringToInputNatural s)}) "N")
-       "select exponent"]
+     Option ['n'] []
+       (inputNaturalArg (\n opts -> opts {optN = n}))
+       "select n parameter",
+     Option ['x'] []
+       (inputNaturalArg (\n opts -> opts {optX = n}))
+       "select x parameter",
+     Option ['k'] []
+       (inputNaturalArg (\n opts -> opts {optK = n}))
+       "select k parameter"]
+  where
+    algorithmArg f = ReqArg (\s -> f (stringToAlgorithm s)) "ALGORITHM"
+    inputNaturalArg f =
+        ReqArg (\s -> f (Just (stringToInputNatural s))) "NATURAL"
 
-processOptions :: [String] -> Either [String] (Options,[String])
-processOptions args =
+processOptions :: Options -> [String] -> Either [String] (Options,[String])
+processOptions opts args =
     case getOpt Permute options args of
-      (opts,work,[]) -> Right (foldl (flip id) defaultOptions opts, work)
+      (opts',args',[]) -> Right (foldl (flip id) opts opts', args')
       (_,_,errs) -> Left errs
 
-processArguments :: [String] -> Options
-processArguments args =
-    case processOptions args of
-      Left errs -> usage (concat errs)
-      Right (opts,work) ->
-        case work of
-          [] -> opts
-          _ : _ -> usage "too many arguments"
+processOperation :: Options -> Operation -> Options
+processOperation opts oper =
+    opts {optOperation = oper, optAlgorithm = defaultAlgorithm oper}
 
 usage :: String -> a
 usage err =
     error $ err ++ "\n" ++ usageInfo header options ++ footer
   where
-    header = "Usage: modexp [OPTION...]"
+    header = "Usage: arithmetic OPERATION [OPTION...]"
 
     footer =
-      "where OPERATION is one of " ++
-      setToString operationToString operations ++ ",\n" ++
-      "ALGORITHM is one of " ++
-      setToString algorithmToString algorithms ++ ",\n" ++
-      "and N is either a natural number or has the form [bitwidth]."
+      "where OPERATION is one of " ++ operationsToString operations ++ ",\n" ++
+      "  ( factor.........factorize n                          )\n" ++
+      "  ( modexp.........compute (x ^ k) `mod` n              )\n" ++
+      "  ( timelock.......compute (x ^ 2 ^ k) `mod` n          )\n" ++
+      "ALGORITHM is one of " ++ algorithmsToString algorithms ++ ",\n" ++
+      "  ( modular........naive modular arithmetic             )\n" ++
+      "  ( montgomery.....Montgomery multiplication            )\n" ++
+      "  ( williams.......Williams p+1 factorization algorithm )\n" ++
+      "and NATURAL is either a natural number or has the form [bitwidth]."
+
+usageOperation :: Operation -> a
+usageOperation oper =
+    error $ err ++ "\n" ++ usageInfo header options ++ footer
+  where
+    err = "bad algorithm"
+
+    algs = possibleAlgorithms oper
+
+    header = "Usage: arithmetic " ++ operationToString oper ++ " [OPTION...]"
+
+    footer =
+      "where ALGORITHM is one of " ++ algorithmsToString algs ++ ",\n" ++
+      "and NATURAL is either a natural number or has the form [bitwidth]."
 
 --------------------------------------------------------------------------------
 -- Computation
 --------------------------------------------------------------------------------
 
-type Computation = Natural -> Natural -> Natural -> Natural
+computeFactorWilliams :: Natural -> Random.Random -> Maybe Natural
+computeFactorWilliams n rnd = undefined
 
-computation :: Operation -> Algorithm -> Computation
-computation Modexp Modular = Modular.exp
-computation Modexp Montgomery = Montgomery.modexp
-computation Timelock Modular = Modular.exp2
-computation Timelock Montgomery = Montgomery.modexp2
+computeFactor :: Operation -> Options -> Random.Random -> String
+computeFactor oper opts rnd =
+    case m of
+      Nothing -> error $ "factorization failed for " ++ show n
+      Just p -> show n ++ " == " ++ show p ++ " * " ++ show (n `div` p)
+  where
+    n = compositeInputNatural (getInput oper "n" (optN opts)) r1
+    m = case optAlgorithm opts of
+          Williams -> computeFactorWilliams n r2
+          _ -> usageOperation oper
+    (r1,r2) = Random.split rnd
 
-computationToString ::
-    Operation -> Natural -> Natural -> Natural -> Natural -> String
-computationToString Modexp n x k y =
-    "( " ++ show x ++ " ^ " ++ show k ++ " ) `mod` " ++
-    show n ++ " == " ++ show y
-computationToString Timelock n x k y =
-    "( " ++ show x ++ " ^ 2 ^ " ++ show k ++ " ) `mod` " ++
-    show n ++ " == " ++ show y
+computeModexp :: Operation -> Options -> Random.Random -> String
+computeModexp oper opts rnd =
+    "( " ++ show x ++ " ^ " ++ show k ++ " ) `mod` " ++ show n ++
+    " == " ++ show y
+  where
+    n = oddInputNatural (getInput oper "n" (optN opts)) r1
+    x = case optX opts of
+          Nothing -> Uniform.random n r2
+          Just w -> uniformInputNatural w r2
+    k = case optK opts of
+          Nothing -> Uniform.random n r3
+          Just w -> uniformInputNatural w r3
+    f = case optAlgorithm opts of
+          Modular -> Modular.exp
+          Montgomery -> Montgomery.modexp
+          _ -> usageOperation oper
+    y = f n x k
+    (r1,r23) = Random.split rnd
+    (r2,r3) = Random.split r23
+
+computeTimelock :: Operation -> Options -> Random.Random -> String
+computeTimelock oper opts rnd =
+    "( " ++ show x ++ " ^ 2 ^ " ++ show k ++ " ) `mod` " ++ show n ++
+     " == " ++ show y
+  where
+    n = oddInputNatural (getInput oper "n" (optN opts)) r1
+    x = case optX opts of
+          Nothing -> Uniform.random n r2
+          Just w -> uniformInputNatural w r2
+    k = uniformInputNatural (getInput oper "k" (optK opts)) r3
+    f = case optAlgorithm opts of
+          Modular -> Modular.exp2
+          Montgomery -> Montgomery.modexp2
+          _ -> usageOperation oper
+    y = f n x k
+    (r1,r23) = Random.split rnd
+    (r2,r3) = Random.split r23
+
+compute :: Options -> Random.Random -> String
+compute opts =
+    case oper of
+      Factor -> computeFactor oper opts
+      Modexp -> computeModexp oper opts
+      Timelock -> computeTimelock oper opts
+  where
+    oper = optOperation opts
 
 --------------------------------------------------------------------------------
 -- Main program
 --------------------------------------------------------------------------------
 
+processArguments :: [String] -> Options
+processArguments cmd =
+    case processOptions opts args of
+      Left errs -> usage (concat errs)
+      Right (opts',work) ->
+        case work of
+          [] -> opts'
+          _ : _ -> usage "too many arguments"
+  where
+    (oper,args) = getOperation cmd
+    opts = processOperation nullOptions oper
+
 main :: IO ()
 main =
     do args <- Environment.getArgs
-       r <- fmap Random.fromInt System.Random.randomIO
+       rnd <- fmap Random.fromInt System.Random.randomIO
        let opts = processArguments args
-       let oper = optOperation opts
-       let (n,x,k) = getInputs oper (optModulus opts) (optBase opts)
-                       (optExponent opts) r
-       let y = computation oper (optAlgorithm opts) n x k
-       putStrLn $ computationToString oper n x k y
+       putStrLn $ compute opts rnd
        return ()

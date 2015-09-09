@@ -67,13 +67,16 @@ sub get_results {
     else {
       print STDOUT "<td>";
 
-      my $cmd = "$cmdprefix --modulus=[$i]";
+      my $cmd = "$cmdprefix -n [$i] -x 2 -k 1000000";
 
       if ($opt_v) {
         print STDOUT "\n$cmd\n";
       }
 
       my $r = `(time -p $cmd) 2>&1 >/dev/null`;
+      if ($? != 0) {
+        die "$program: the following command failed with error code $?:\n  $cmd\n";
+      }
 
       my $t = get_real_time $r;
 
@@ -96,8 +99,8 @@ my $modexp = "dist/build/arithmetic/arithmetic";
 [ -x $modexp ] or die "$program: $modexp not an executable";
 
 get_results ("<em>n</em>", "header");
-get_results ("Modular", "$modexp --operation=timelock --algorithm=modular");
-get_results ("Montgomery", "$modexp --operation=timelock --algorithm=montgomery");
+get_results ("Modular", "$modexp timelock --algorithm=modular");
+get_results ("Montgomery", "$modexp timelock --algorithm=montgomery");
 
 __END__
 
