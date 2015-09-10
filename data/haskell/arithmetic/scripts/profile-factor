@@ -49,7 +49,7 @@ sub get_results {
   print STDOUT "</b></td>";
 
   my $i = 10;
-  while ($i <= 100) {
+  while ($i <= 160) {
     if ($cmdprefix eq "header") {
       print STDOUT "<td><b>";
       print STDOUT $i;
