@@ -14,6 +14,8 @@ where
 import qualified Test.QuickCheck as QuickCheck
 import OpenTheory.Primitive.Natural
 import OpenTheory.Natural
+import qualified OpenTheory.Natural.Bits as Bits
+import qualified OpenTheory.Natural.Prime as Prime
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 
@@ -25,6 +27,11 @@ import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
 import qualified Arithmetic.Quadratic as Quadratic
 import qualified Arithmetic.Smooth as Smooth
+
+propPrimes :: Natural -> Bool
+propPrimes k =
+    primes !! (fromIntegral k) ==
+    Prime.primes !! (fromIntegral k)
 
 propSmoothInjective :: Natural -> Natural -> Bool
 propSmoothInjective k np =
@@ -57,8 +64,8 @@ propFermat pp rnd =
     a = Uniform.random p r2
     (r1,r2) = Random.split rnd
 
-propMontgomeryInvariant :: Natural -> Bool
-propMontgomeryInvariant np =
+propMontgomeryInvariant :: Natural -> Natural -> Bool
+propMontgomeryInvariant np b =
     naturalOdd n &&
     1 < n &&
     n < w2 &&
@@ -78,7 +85,8 @@ propMontgomeryInvariant np =
        Montgomery.kParameters = k,
        Montgomery.rParameters = r,
        Montgomery.r2Parameters = r2,
-       Montgomery.zParameters = z} = Montgomery.standardParameters (2 * np + 3)
+       Montgomery.zParameters = z} =
+      Montgomery.customParameters (2 * np + 3) (Bits.width n + b)
     w2 = shiftLeft 1 w
 
 propMontgomeryNormalize :: Natural -> Natural -> Bool
@@ -327,7 +335,8 @@ check desc prop =
 
 main :: IO ()
 main =
-    do check "Smooth constructor is injective" propSmoothInjective
+    do check "Sieve of Eratosphenes" propPrimes
+       check "Smooth constructor is injective" propSmoothInjective
        check "Modular negate" propModularNegate
        check "Modular invert" propModularInvert
        check "Fermat's little theorem" propFermat

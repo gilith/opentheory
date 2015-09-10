@@ -14,7 +14,8 @@ import qualified Data.List as List
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 import OpenTheory.Natural.Divides
-import qualified OpenTheory.Natural.Prime as Prime
+
+import Arithmetic.Prime
 
 factorOut :: Natural -> Natural -> Maybe (Natural,Natural)
 factorOut p =
@@ -37,7 +38,7 @@ factorList ps n =
             ((p,k) : pks, q)
 
 factorBase :: Natural -> Natural -> ([(Natural,Natural)],Natural)
-factorBase k = factorList (take (fromIntegral k) Prime.primes)
+factorBase k = factorList (take (fromIntegral k) primes)
 
 multiplyBase :: ([(Natural,Natural)],Natural) -> Natural
 multiplyBase =

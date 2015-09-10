@@ -16,7 +16,6 @@ import System.Console.GetOpt
 import qualified System.Environment as Environment
 import qualified System.Random
 import OpenTheory.Primitive.Natural
-import OpenTheory.Natural.Prime
 import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform

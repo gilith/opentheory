@@ -13,17 +13,15 @@ where
 import OpenTheory.Primitive.Natural
 import OpenTheory.Primitive.Random as Random
 import OpenTheory.Natural
-import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Natural.Uniform as Uniform
 
 import Arithmetic.Random
+import Arithmetic.Utility
 import qualified Arithmetic.Modular as Modular
+import qualified Arithmetic.Prime.Sieve as Sieve
 
-factorTwos :: Natural -> (Natural,Natural)
-factorTwos n =
-   if Bits.headBits n then (0,n) else (r + 1, s)
-  where
-    (r,s) = factorTwos (Bits.tailBits n)
+primes :: [Natural]
+primes = 2 : Sieve.advance 1 4 Sieve.initial
 
 millerRabinWitness :: Natural -> Natural -> Bool
 millerRabinWitness n =

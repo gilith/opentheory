@@ -31,3 +31,9 @@ multiplyExponential mult =
         z' = if Bits.headBits k then mult z x else z
         x' = mult x x
         k' = Bits.tailBits k
+
+factorTwos :: Natural -> (Natural,Natural)
+factorTwos n =
+   if Bits.headBits n then (0,n) else (r + 1, s)
+  where
+    (r,s) = factorTwos (Bits.tailBits n)

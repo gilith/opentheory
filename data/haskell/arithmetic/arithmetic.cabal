@@ -20,8 +20,7 @@ Library
     opentheory-primitive >= 1.8 && < 2.0,
     opentheory >= 1.0 && < 2.0,
     opentheory-bits >= 1.0 && < 2.0,
-    opentheory-divides >= 1.0 && < 2.0,
-    opentheory-prime >= 1.0 && < 2.0
+    opentheory-divides >= 1.0 && < 2.0
   hs-source-dirs: src
   ghc-options: -Wall
   exposed-modules:
@@ -30,10 +29,12 @@ Library
     Arithmetic.Modular,
     Arithmetic.Montgomery,
     Arithmetic.Prime,
+    Arithmetic.Prime.Sieve,
     Arithmetic.Quadratic,
     Arithmetic.Random,
     Arithmetic.Smooth,
-    Arithmetic.Utility
+    Arithmetic.Utility,
+    Data.Heap
 
 executable arithmetic
   build-depends:
@@ -43,8 +44,7 @@ executable arithmetic
     opentheory-primitive >= 1.8 && < 2.0,
     opentheory >= 1.0 && < 2.0,
     opentheory-bits >= 1.0 && < 2.0,
-    opentheory-divides >= 1.0 && < 2.0,
-    opentheory-prime >= 1.0 && < 2.0
+    opentheory-divides >= 1.0 && < 2.0
   hs-source-dirs: src
   ghc-options: -Wall
   main-is: Main.hs

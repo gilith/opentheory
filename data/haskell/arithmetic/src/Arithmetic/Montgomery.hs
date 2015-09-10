@@ -15,7 +15,6 @@ import qualified OpenTheory.Natural.Bits as Bits
 import OpenTheory.Natural.Divides
 
 import Arithmetic.Utility
-import qualified Arithmetic.Modular as Modular
 
 data Parameters = Parameters
     {nParameters :: Natural,
