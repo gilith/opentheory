@@ -124,9 +124,9 @@ stringToInputNatural s =
             [(n,"")] -> Fixed n
             _ -> usage "bad N argument"
 
-uniformInputNatural :: InputNatural -> Random.Random -> Natural
-uniformInputNatural (Fixed n) _ = n
-uniformInputNatural (Width w) r = Uniform.random (2 ^ w) r
+widthInputNatural :: InputNatural -> Random.Random -> Natural
+widthInputNatural (Fixed n) _ = n
+widthInputNatural (Width w) r = randomWidth w r
 
 oddInputNatural :: InputNatural -> Random.Random -> Natural
 oddInputNatural (Fixed n) _ = n
@@ -228,6 +228,19 @@ usageOperation oper =
 -- Computation
 --------------------------------------------------------------------------------
 
+computeFactorWilliams :: Options -> Natural -> Random.Random -> Maybe Natural
+computeFactorWilliams opts n rnd =
+    Factor.williams n x k r3
+  where
+    x = case optX opts of
+          Nothing -> 1
+          Just w -> widthInputNatural w r1
+    k = case optK opts of
+          Nothing -> 1000000
+          Just w -> widthInputNatural w r2
+    (r1,r23) = Random.split rnd
+    (r2,r3) = Random.split r23
+
 computeFactor :: Operation -> Options -> Random.Random -> String
 computeFactor oper opts rnd =
     case m of
@@ -236,7 +249,7 @@ computeFactor oper opts rnd =
   where
     n = compositeRSAInputNatural (getInput oper "n" (optN opts)) r1
     m = case optAlgorithm opts of
-          Williams -> Factor.williams n r2
+          Williams -> computeFactorWilliams opts n r2
           _ -> usageOperation oper
     (r1,r2) = Random.split rnd
 
@@ -248,10 +261,10 @@ computeModexp oper opts rnd =
     n = oddInputNatural (getInput oper "n" (optN opts)) r1
     x = case optX opts of
           Nothing -> Uniform.random n r2
-          Just w -> uniformInputNatural w r2
+          Just w -> widthInputNatural w r2
     k = case optK opts of
           Nothing -> Uniform.random n r3
-          Just w -> uniformInputNatural w r3
+          Just w -> widthInputNatural w r3
     f = case optAlgorithm opts of
           Modular -> Modular.exp
           Montgomery -> Montgomery.modexp
@@ -268,8 +281,8 @@ computeTimelock oper opts rnd =
     n = oddInputNatural (getInput oper "n" (optN opts)) r1
     x = case optX opts of
           Nothing -> Uniform.random n r2
-          Just w -> uniformInputNatural w r2
-    k = uniformInputNatural (getInput oper "k" (optK opts)) r3
+          Just w -> widthInputNatural w r2
+    k = widthInputNatural (getInput oper "k" (optK opts)) r3
     f = case optAlgorithm opts of
           Modular -> Modular.exp2
           Montgomery -> Montgomery.modexp2

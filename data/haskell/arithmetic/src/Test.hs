@@ -22,6 +22,7 @@ import qualified OpenTheory.Natural.Uniform as Uniform
 import Arithmetic.Random
 import Arithmetic.Prime
 import qualified Arithmetic.ContinuedFraction as ContinuedFraction
+import qualified Arithmetic.Factor as Factor
 import qualified Arithmetic.Lucas as Lucas
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
@@ -323,6 +324,14 @@ propWilliamsNthEqTwo pp a mp rnd =
     sub = Modular.subtract p
     mult = Modular.multiply p
 
+propWilliamsFactor :: Natural -> Natural -> Natural -> Random.Random -> Bool
+propWilliamsFactor np x k rnd =
+    case Factor.williams n x k rnd of
+      Nothing -> True
+      Just p -> p < n && gcd n p /= 1
+  where
+    n = 2 * np + 5
+
 check :: QuickCheck.Testable prop => String -> prop -> IO ()
 check desc prop =
     do putStr (desc ++ "\n  ")
@@ -367,4 +376,5 @@ main =
        check "Williams sequence product" propWilliamsNthProduct
        check "Williams sequence exponential" propWilliamsNthExp
        check "Williams sequence equals two" propWilliamsNthEqTwo
+       check "Williams factorization works" propWilliamsFactor
        return ()

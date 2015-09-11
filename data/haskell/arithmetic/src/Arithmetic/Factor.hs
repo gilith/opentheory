@@ -19,12 +19,37 @@ import Arithmetic.Prime
 import qualified Arithmetic.Lucas as Lucas
 import qualified Arithmetic.Modular as Modular
 
-williams :: Natural -> Random.Random -> Maybe Natural
-williams n rnd =
-    let g = gcd n a in if 1 < g then Just g else loop a primes
+williamsMethod :: Natural -> [Natural] -> [Natural] -> Maybe Natural
+williamsMethod n =
+    loop
   where
     w = Bits.width n
-    a = Uniform.random (n - 3) rnd + 2
+
+    loop [] _ = Nothing
+    loop _ [] = Nothing
+    loop vs (p : ps) =
+        case fltr vs p k of
+          Left g -> Just g
+          Right vs' -> loop vs' ps
+      where
+        -- log_p n = log_2 n / log_2 p <= |n| / (|p| - 1)
+        k = w `div` (Bits.width p - 1)
+
+    fltr [] _ _ = Right []
+    fltr (v : vs) p k =
+        case check v p k of
+          Left g -> Left g
+          Right v' -> mcons v' (fltr vs p k)
+
+    mcons (Just v) (Right vs) = Right (v : vs)
+    mcons _ vs = vs
+
+    check v p k =
+        if g == n then Right Nothing
+        else if 1 < g then Left g
+        else Right (Just (pow v p k))
+      where
+        g = gcd n (v - 2)
 
     pow =
         Lucas.williamsNthExp two sub mult
@@ -33,12 +58,28 @@ williams n rnd =
         sub = Modular.subtract n
         mult = Modular.multiply n
 
-    loop v ps =
-        if g == n then Nothing
-        else if 1 < g then Just g
-        else loop (pow v p k) (tail ps)
+williamsBase :: Natural -> Natural -> Random.Random -> Either Natural [Natural]
+williamsBase n =
+    go
+  where
+    go x rnd =
+        if x == 0 then Right []
+        else mcons (gen r1) (go (x - 1) r2)
       where
-        g = gcd n (v - 2)
-        p = head ps
-        -- log_p n = log_2 n / log_2 p <= |n| / (|p| - 1)
-        k = w `div` (Bits.width p - 1)
+        (r1,r2) = Random.split rnd
+
+    mcons (Right v) (Right vs) = Right (v : vs)
+    mcons _ vs = vs
+
+    gen rnd =
+        if 1 < g then Left g else Right v
+      where
+        v = Uniform.random (n - 3) rnd + 2
+        g = gcd n v
+
+-- Works for odd numbers at least 5
+williams :: Natural -> Natural -> Natural -> Random.Random -> Maybe Natural
+williams n x k rnd =
+    case williamsBase n x rnd of
+      Left g -> Just g
+      Right vs -> williamsMethod n vs (take (fromIntegral k) primes)
