@@ -11,7 +11,8 @@ module Arithmetic.Prime.Sieve
 where
 
 import OpenTheory.Primitive.Natural
-import qualified Data.Heap as Heap
+
+import qualified Arithmetic.Heap as Heap
 
 newtype Sieve = Sieve { unSieve :: Heap.Heap (Natural,Natural) }
 

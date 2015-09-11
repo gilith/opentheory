@@ -14,7 +14,6 @@ import OpenTheory.Primitive.Natural
 import qualified Data.List as List
 
 import Arithmetic.Utility
-import Arithmetic.Prime
 import qualified Arithmetic.ContinuedFraction as ContinuedFraction
 import qualified Arithmetic.Modular as Modular
 

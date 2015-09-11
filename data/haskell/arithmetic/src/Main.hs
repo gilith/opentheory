@@ -16,13 +16,12 @@ import System.Console.GetOpt
 import qualified System.Environment as Environment
 import qualified System.Random
 import OpenTheory.Primitive.Natural
-import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 
 import Arithmetic.Prime
 import Arithmetic.Random
-import qualified Arithmetic.Lucas as Lucas
+import qualified Arithmetic.Factor as Factor
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
 
@@ -229,30 +228,6 @@ usageOperation oper =
 -- Computation
 --------------------------------------------------------------------------------
 
-computeFactorWilliams :: Natural -> Random.Random -> Maybe Natural
-computeFactorWilliams n rnd =
-    let g = gcd n a in if 1 < g then Just g else loop a primes
-  where
-    w = Bits.width n
-    a = Uniform.random (n - 3) rnd + 2
-
-    pow =
-        Lucas.williamsNthExp two sub mult
-      where
-        two = Modular.normalize n 2
-        sub = Modular.subtract n
-        mult = Modular.multiply n
-
-    loop v ps =
-        if g == n then Nothing
-        else if 1 < g then Just g
-        else loop (pow v p k) (tail ps)
-      where
-        g = gcd n (v - 2)
-        p = head ps
-        -- log_p n = log_2 n / log_2 p <= |n| / (|p| - 1)
-        k = w `div` (Bits.width p - 1)
-
 computeFactor :: Operation -> Options -> Random.Random -> String
 computeFactor oper opts rnd =
     case m of
@@ -261,7 +236,7 @@ computeFactor oper opts rnd =
   where
     n = compositeRSAInputNatural (getInput oper "n" (optN opts)) r1
     m = case optAlgorithm opts of
-          Williams -> computeFactorWilliams n r2
+          Williams -> Factor.williams n r2
           _ -> usageOperation oper
     (r1,r2) = Random.split rnd
 

@@ -25,6 +25,8 @@ Library
   ghc-options: -Wall
   exposed-modules:
     Arithmetic.ContinuedFraction,
+    Arithmetic.Factor,
+    Arithmetic.Heap,
     Arithmetic.Lucas,
     Arithmetic.Modular,
     Arithmetic.Montgomery,
@@ -33,8 +35,7 @@ Library
     Arithmetic.Quadratic,
     Arithmetic.Random,
     Arithmetic.Smooth,
-    Arithmetic.Utility,
-    Data.Heap
+    Arithmetic.Utility
 
 executable arithmetic
   build-depends:
