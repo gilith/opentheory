@@ -14,6 +14,7 @@ where
 import qualified Test.QuickCheck as QuickCheck
 import OpenTheory.Primitive.Natural
 import OpenTheory.Natural
+import OpenTheory.Natural.Divides
 import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Natural.Prime as Prime
 import qualified OpenTheory.Primitive.Random as Random
@@ -328,7 +329,7 @@ propWilliamsFactor :: Natural -> Natural -> Natural -> Random.Random -> Bool
 propWilliamsFactor np x k rnd =
     case Factor.williams n x k rnd of
       Nothing -> True
-      Just p -> p < n && gcd n p /= 1
+      Just p -> 1 < p && p < n && divides p n
   where
     n = 2 * np + 5
 
