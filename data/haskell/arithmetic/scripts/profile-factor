@@ -13,7 +13,6 @@ use Getopt::Std;
 
 use vars qw($opt_t $opt_n $opt_h $opt_v);
 
-$opt_t = 10;
 $opt_n = 100;
 
 getopts('t:n:hv');
@@ -37,6 +36,12 @@ my $program = "profile-factor";
 # Helper functions.
 ###############################################################################
 
+sub commify {
+  local $_ = shift;
+  1 while s/^(-?\d+)(\d{3})/$1,$2/;
+  return $_;
+}
+
 sub get_results {
   (scalar @_ == 2) or die;
   my $name = shift @_;
@@ -44,21 +49,25 @@ sub get_results {
 
   print STDOUT "<tr>";
 
-  print STDOUT "<td><b>";
+  print STDOUT "<td align=\"right\"><b>";
   print STDOUT $name;
   print STDOUT "</b></td>";
 
   my $i = 10;
-  while ($i <= 160) {
+  while ($i <= 100) {
     if ($cmdprefix eq "header") {
-      print STDOUT "<td><b>";
+      print STDOUT "<td align=\"right\"><b>";
       print STDOUT $i;
       print STDOUT "</b></td>";
     }
     else {
-      print STDOUT "<td>";
+      print STDOUT "<td align=\"right\">";
 
-      my $cmd = "(ulimit -t $opt_t ; $cmdprefix -n [$i]) &>/dev/null";
+      my $cmd = "$cmdprefix -n [$i]";
+      if ($opt_t) {
+        $cmd = "(ulimit -t $opt_t ; $cmd)";
+      }
+      $cmd .= ' &>/dev/null';
 
       if ($opt_v) {
         print STDOUT "\n$cmd\n";
@@ -72,7 +81,7 @@ sub get_results {
         }
       }
 
-      print STDOUT (((100 * $s) / $opt_n) . '%</td>');
+      print STDOUT (int((100 * $s) / $opt_n) . '%</td>');
     }
 
     $i += 10;
@@ -88,8 +97,15 @@ sub get_results {
 my $factor = "dist/build/arithmetic/arithmetic";
 [ -x $factor ] or die "$program: $factor not an executable";
 
-get_results ("<em>|N|</em>", "header");
-get_results ("Williams p+1", "$factor factor --algorithm=williams");
+my $k = 1000;
+print STDOUT ("<h2>Williams p+1 Method (" . commify($k) . " primes)</h2>\n");
+print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
+get_results ("<em>log<sub>2</sub>N</em>", "header");
+for (my $x = 1; $x <= 6; ++$x) {
+  get_results (("Williams p+1 ($x base" . ($x == 1 ? "" : "s") . ")"),
+               "$factor factor --algorithm=williams -x $x -k $k");
+}
+print STDOUT "</table>\n";
 
 __END__
 
