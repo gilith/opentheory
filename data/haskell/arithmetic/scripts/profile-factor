@@ -102,7 +102,7 @@ print STDOUT ("<h2>Williams p+1 Method (" . commify($k) . " primes)</h2>\n");
 print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
 get_results ("<em>log<sub>2</sub>N</em>", "header");
 for (my $x = 1; $x <= 6; ++$x) {
-  get_results (("Williams p+1 ($x base" . ($x == 1 ? "" : "s") . ")"),
+  get_results (("$x base" . ($x == 1 ? "" : "s")),
                "$factor factor --algorithm=williams -x $x -k $k");
 }
 print STDOUT "</table>\n";
