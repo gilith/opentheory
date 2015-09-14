@@ -11,11 +11,12 @@ use Getopt::Std;
 # Process options.
 ###############################################################################
 
-use vars qw($opt_t $opt_n $opt_h $opt_v);
+use vars qw($opt_t $opt_n $opt_k $opt_h $opt_v);
 
 $opt_n = 100;
+$opt_k = 1000;
 
-getopts('t:n:hv');
+getopts('t:n:k:hv');
 
 if ($opt_h or scalar @ARGV != 0)
 {
@@ -67,10 +68,12 @@ sub get_results {
       if ($opt_t) {
         $cmd = "(ulimit -t $opt_t ; $cmd)";
       }
-      $cmd .= ' &>/dev/null';
 
       if ($opt_v) {
         print STDOUT "\n$cmd\n";
+      }
+      else {
+        $cmd .= ' >/dev/null 2>/dev/null';
       }
 
       my $s = 0;
@@ -97,13 +100,12 @@ sub get_results {
 my $factor = "dist/build/arithmetic/arithmetic";
 [ -x $factor ] or die "$program: $factor not an executable";
 
-my $k = 1000;
-print STDOUT ("<h2>Williams p+1 Method (" . commify($k) . " primes)</h2>\n");
+print STDOUT ("<h2>Williams p+1 Method (" . commify($opt_k) . " primes, " . commify($opt_n) . " samples)</h2>\n");
 print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
 get_results ("<em>log<sub>2</sub>N</em>", "header");
 for (my $x = 1; $x <= 6; ++$x) {
   get_results (("$x base" . ($x == 1 ? "" : "s")),
-               "$factor factor --algorithm=williams -x $x -k $k");
+               "$factor factor -a williams -x $x -k $opt_k");
 }
 print STDOUT "</table>\n";
 
@@ -117,7 +119,7 @@ profile-factor - profile the factoring algorithms
 
 =head1 SYNOPSIS
 
-profile-factor [-t N] [-n N] [-hv]
+profile-factor [-t N] [-n N] [-k N] [-hv]
 
 =head1 ARGUMENTS
 
@@ -132,6 +134,10 @@ Constrain each factoring attempt to be at most N seconds.
 =item B<-n N>
 
 Perform N factoring attempts for each bitwidth.
+
+=item B<-k N>
+
+Use the first N primes.
 
 =item B<-h>
 

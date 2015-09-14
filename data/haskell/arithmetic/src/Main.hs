@@ -149,7 +149,7 @@ getInput oper s m =
 
 data Options = Options
     {optOperation :: Operation,
-     optAlgorithm :: Algorithm,
+     optA :: Algorithm,
      optN :: Maybe InputNatural,
      optX :: Maybe InputNatural,
      optK :: Maybe InputNatural}
@@ -159,15 +159,15 @@ nullOptions :: Options
 nullOptions =
   Options
     {optOperation = Factor,
-     optAlgorithm = Williams,
+     optA = Williams,
      optN = Nothing,
      optX = Nothing,
      optK = Nothing}
 
 options :: [OptDescr (Options -> Options)]
 options =
-    [Option [] ["algorithm"]
-       (algorithmArg (\alg opts -> opts {optAlgorithm = alg}))
+    [Option ['a'] []
+       (algorithmArg (\alg opts -> opts {optA = alg}))
        "select algorithm",
      Option ['n'] []
        (inputNaturalArg (\n opts -> opts {optN = n}))
@@ -191,7 +191,7 @@ processOptions opts args =
 
 processOperation :: Options -> Operation -> Options
 processOperation opts oper =
-    opts {optOperation = oper, optAlgorithm = defaultAlgorithm oper}
+    opts {optOperation = oper, optA = defaultAlgorithm oper}
 
 usage :: String -> a
 usage err =
@@ -201,13 +201,13 @@ usage err =
 
     footer =
       "where OPERATION is one of " ++ operationsToString operations ++ ",\n" ++
-      "  ( factor.........factorize n                          )\n" ++
-      "  ( modexp.........compute (x ^ k) `mod` n              )\n" ++
-      "  ( timelock.......compute (x ^ 2 ^ k) `mod` n          )\n" ++
+      "  ( factor.........factorize n                       )\n" ++
+      "  ( modexp.........compute (x ^ k) `mod` n           )\n" ++
+      "  ( timelock.......compute (x ^ 2 ^ k) `mod` n       )\n" ++
       "ALGORITHM is one of " ++ algorithmsToString algorithms ++ ",\n" ++
-      "  ( modular........naive modular arithmetic             )\n" ++
-      "  ( montgomery.....Montgomery multiplication            )\n" ++
-      "  ( williams.......Williams p+1 factorization algorithm )\n" ++
+      "  ( modular........naive modular arithmetic          )\n" ++
+      "  ( montgomery.....Montgomery multiplication         )\n" ++
+      "  ( williams.......Williams p+1 factorization method )\n" ++
       "and NATURAL is either a natural number or has the form [bitwidth]."
 
 usageOperation :: Operation -> a
@@ -236,8 +236,8 @@ computeFactorWilliams opts n rnd =
           Nothing -> 1
           Just w -> widthInputNatural w r1
     k = case optK opts of
-          Nothing -> 1000000
-          Just w -> widthInputNatural w r2
+          Nothing -> Nothing
+          Just w -> Just (widthInputNatural w r2)
     (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
@@ -248,7 +248,7 @@ computeFactor oper opts rnd =
       Just p -> show n ++ " == " ++ show p ++ " * " ++ show (n `div` p)
   where
     n = compositeRSAInputNatural (getInput oper "n" (optN opts)) r1
-    m = case optAlgorithm opts of
+    m = case optA opts of
           Williams -> computeFactorWilliams opts n r2
           _ -> usageOperation oper
     (r1,r2) = Random.split rnd
@@ -265,7 +265,7 @@ computeModexp oper opts rnd =
     k = case optK opts of
           Nothing -> Uniform.random n r3
           Just w -> widthInputNatural w r3
-    f = case optAlgorithm opts of
+    f = case optA opts of
           Modular -> Modular.exp
           Montgomery -> Montgomery.modexp
           _ -> usageOperation oper
@@ -283,7 +283,7 @@ computeTimelock oper opts rnd =
           Nothing -> Uniform.random n r2
           Just w -> widthInputNatural w r2
     k = widthInputNatural (getInput oper "k" (optK opts)) r3
-    f = case optAlgorithm opts of
+    f = case optA opts of
           Modular -> Modular.exp2
           Montgomery -> Montgomery.modexp2
           _ -> usageOperation oper

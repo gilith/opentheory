@@ -78,8 +78,12 @@ williamsBase n =
         g = gcd n v
 
 -- Works for odd numbers at least 5
-williams :: Natural -> Natural -> Natural -> Random.Random -> Maybe Natural
+williams :: Natural -> Natural -> Maybe Natural -> Random.Random -> Maybe Natural
 williams n x k rnd =
     case williamsBase n x rnd of
       Left g -> Just g
-      Right vs -> williamsMethod n vs (take (fromIntegral k) primes)
+      Right vs -> williamsMethod n vs ps
+  where
+    ps = case k of
+           Just m -> take (fromIntegral m) primes
+           Nothing -> primes

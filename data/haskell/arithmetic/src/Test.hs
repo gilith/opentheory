@@ -327,7 +327,7 @@ propWilliamsNthEqTwo pp a mp rnd =
 
 propWilliamsFactor :: Natural -> Natural -> Natural -> Random.Random -> Bool
 propWilliamsFactor np x k rnd =
-    case Factor.williams n x k rnd of
+    case Factor.williams n x (Just k) rnd of
       Nothing -> True
       Just p -> 1 < p && p < n && divides p n
   where

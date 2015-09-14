@@ -10,7 +10,8 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   This package implements a library of natural number arithmetic functions,
-  including Montgomery multiplication and continued fractions.
+  including Montgomery multiplication, continued fractions and Lucas
+  sequences.
 
 Library
   build-depends:

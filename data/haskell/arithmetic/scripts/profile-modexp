@@ -99,8 +99,8 @@ my $modexp = "dist/build/arithmetic/arithmetic";
 [ -x $modexp ] or die "$program: $modexp not an executable";
 
 get_results ("<em>n</em>", "header");
-get_results ("Modular", "$modexp timelock --algorithm=modular");
-get_results ("Montgomery", "$modexp timelock --algorithm=montgomery");
+get_results ("Modular", "$modexp timelock -a modular");
+get_results ("Montgomery", "$modexp timelock -a montgomery");
 
 __END__
 
