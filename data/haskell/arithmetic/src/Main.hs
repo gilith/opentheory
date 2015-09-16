@@ -24,6 +24,7 @@ import Arithmetic.Random
 import qualified Arithmetic.Factor as Factor
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
+import qualified Arithmetic.Williams as Williams
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -173,10 +174,10 @@ options =
        (inputNaturalArg (\n opts -> opts {optN = n}))
        "select n parameter",
      Option ['x'] []
-       (inputNaturalArg (\n opts -> opts {optX = n}))
+       (inputNaturalArg (\x opts -> opts {optX = x}))
        "select x parameter",
      Option ['k'] []
-       (inputNaturalArg (\n opts -> opts {optK = n}))
+       (inputNaturalArg (\k opts -> opts {optK = k}))
        "select k parameter"]
   where
     algorithmArg f = ReqArg (\s -> f (stringToAlgorithm s)) "ALGORITHM"
@@ -230,10 +231,10 @@ usageOperation oper =
 
 computeFactorWilliams :: Options -> Natural -> Random.Random -> Maybe Natural
 computeFactorWilliams opts n rnd =
-    Factor.williams n x k r3
+    Williams.factor n x k r3
   where
     x = case optX opts of
-          Nothing -> 1
+          Nothing -> 4
           Just w -> widthInputNatural w r1
     k = case optK opts of
           Nothing -> Nothing

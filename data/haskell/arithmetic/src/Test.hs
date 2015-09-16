@@ -29,11 +29,30 @@ import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
 import qualified Arithmetic.Quadratic as Quadratic
 import qualified Arithmetic.Smooth as Smooth
+import qualified Arithmetic.Williams as Williams
 
 propPrimes :: Natural -> Bool
 propPrimes k =
     primes !! (fromIntegral k) ==
     Prime.primes !! (fromIntegral k)
+
+propRandomPrime :: Natural -> Random.Random -> Bool
+propRandomPrime wp rnd =
+    Bits.width p == w &&
+    isPrime p r2
+  where
+    w = wp + 2
+    p = randomPrime w r1
+    (r1,r2) = Random.split rnd
+
+propRandomCompositeRSA :: Natural -> Random.Random -> Bool
+propRandomCompositeRSA wp rnd =
+    Bits.width n == w &&
+    not (isPrime n r2)
+  where
+    w = wp + 4
+    n = randomCompositeRSA w r1
+    (r1,r2) = Random.split rnd
 
 propSmoothInjective :: Natural -> Natural -> Bool
 propSmoothInjective k np =
@@ -279,8 +298,8 @@ propRootModuloPrime pp rnd =
 
 propWilliamsNth :: Natural -> Natural -> Natural -> Bool
 propWilliamsNth np p k =
-    Lucas.williamsSequence one two sub mult p !! (fromIntegral k) ==
-    Lucas.williamsNth two sub mult p k
+    Williams.sequence one two sub mult p !! (fromIntegral k) ==
+    Williams.nth two sub mult p k
   where
     n = np + 1
     one = 1
@@ -290,9 +309,8 @@ propWilliamsNth np p k =
 
 propWilliamsNthProduct :: Natural -> Natural -> Natural -> Natural -> Bool
 propWilliamsNthProduct np pp i j =
-    Lucas.williamsNth two sub mult p (i * j) ==
-    Lucas.williamsNth two sub mult
-      (Lucas.williamsNth two sub mult p i) j
+    Williams.nth two sub mult p (i * j) ==
+    Williams.nth two sub mult (Williams.nth two sub mult p i) j
   where
     n = np + 1
     p = pp + 1
@@ -302,8 +320,8 @@ propWilliamsNthProduct np pp i j =
 
 propWilliamsNthExp :: Natural -> Natural -> Natural -> Natural -> Bool
 propWilliamsNthExp np p m k =
-    Lucas.williamsNthExp two sub mult p m k ==
-    Lucas.williamsNth two sub mult p (m ^ k)
+    Williams.nthExp two sub mult p m k ==
+    Williams.nth two sub mult p (m ^ k)
   where
     n = np + 1
     two = Modular.normalize n 2
@@ -312,7 +330,7 @@ propWilliamsNthExp np p m k =
 
 propWilliamsNthEqTwo :: Natural -> Natural -> Natural -> Random.Random -> Bool
 propWilliamsNthEqTwo pp a mp rnd =
-    Lucas.williamsNth two sub mult a m == two
+    Williams.nth two sub mult a m == two
   where
     p = nextPrime (pp + 3) rnd
     d = sub (mult a a) 4
@@ -327,7 +345,7 @@ propWilliamsNthEqTwo pp a mp rnd =
 
 propWilliamsFactor :: Natural -> Natural -> Natural -> Random.Random -> Bool
 propWilliamsFactor np x k rnd =
-    case Factor.williams n x (Just k) rnd of
+    case Williams.factor n x (Just k) rnd of
       Nothing -> True
       Just p -> 1 < p && p < n && divides p n
   where
@@ -346,6 +364,8 @@ check desc prop =
 main :: IO ()
 main =
     do check "Sieve of Eratosphenes" propPrimes
+       check "Generating random primes" propRandomPrime
+       check "Generating random RSA composites" propRandomCompositeRSA
        check "Smooth constructor is injective" propSmoothInjective
        check "Modular negate" propModularNegate
        check "Modular invert" propModularInvert

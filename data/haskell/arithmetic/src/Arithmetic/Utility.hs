@@ -11,6 +11,7 @@ module Arithmetic.Utility
 where
 
 import OpenTheory.Primitive.Natural
+import OpenTheory.Natural.Divides
 import qualified OpenTheory.Natural.Bits as Bits
 
 functionPower :: (a -> a) -> Natural -> a -> a
@@ -37,3 +38,9 @@ factorTwos n =
    if Bits.headBits n then (0,n) else (r + 1, s)
   where
     (r,s) = factorTwos (Bits.tailBits n)
+
+factorOut :: Natural -> Natural -> (Natural,Natural)
+factorOut p =
+    go 0
+  where
+    go k n = if divides p n then go (k + 1) (n `div` p) else (k,n)

@@ -13,6 +13,7 @@ where
 import OpenTheory.Primitive.Natural
 import OpenTheory.Primitive.Random as Random
 import OpenTheory.Natural
+import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Natural.Uniform as Uniform
 
 import Arithmetic.Random
@@ -107,11 +108,10 @@ randomPrime5Mod8 w =
     check p = p `mod` 8 == 5
 
 randomCompositeRSA :: Natural -> Random.Random -> Natural
-randomCompositeRSA w rnd =
-    p1 * p2
+randomCompositeRSA w =
+    randomFilter check gen
   where
+    check n = Bits.width n == w
     w1 = w `div` 2
     w2 = w - w1
-    p1 = randomPrime w1 r1
-    p2 = randomPrime w2 r2
-    (r1,r2) = Random.split rnd
+    gen = randomPairWith (*) (randomPrime w1) (randomPrime w2)

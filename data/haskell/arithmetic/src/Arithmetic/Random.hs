@@ -16,12 +16,16 @@ import qualified OpenTheory.Natural.Bits as Bits
 import OpenTheory.Natural.Divides
 import qualified OpenTheory.Natural.Uniform as Uniform
 
-randomPair ::
-    (Random.Random -> a) -> (Random.Random -> b) -> Random.Random -> (a,b)
-randomPair ra rb r =
-    (ra r1, rb r2)
+randomPairWith :: (a -> b -> c) -> (Random.Random -> a) ->
+                  (Random.Random -> b) -> Random.Random -> c
+randomPairWith f ra rb r =
+    f (ra r1) (rb r2)
   where
     (r1,r2) = Random.split r
+
+randomPair ::
+    (Random.Random -> a) -> (Random.Random -> b) -> Random.Random -> (a,b)
+randomPair = randomPairWith (,)
 
 randomMaybe :: (Random.Random -> Maybe a) -> Random.Random -> a
 randomMaybe g =
