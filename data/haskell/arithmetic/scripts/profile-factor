@@ -84,7 +84,9 @@ sub get_results {
         }
       }
 
-      print STDOUT (int((100 * $s) / $opt_n) . '%</td>');
+      my $p = (100 * $s) / $opt_n;
+      $p = ($p < 10.0) ? sprintf("%.1f",$p) : sprintf("%.0f",$p);
+      print STDOUT ($p . '%</td>');
     }
 
     $i += 10;
@@ -103,7 +105,7 @@ my $factor = "dist/build/arithmetic/arithmetic";
 print STDOUT ("<h2>Williams p+1 Method (" . commify($opt_k) . " primes, " . commify($opt_n) . " samples)</h2>\n");
 print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
 get_results ("<em>log<sub>2</sub>N</em>", "header");
-for (my $x = 1; $x <= 6; ++$x) {
+for (my $x = 1; $x <= 8; ++$x) {
   get_results (("$x base" . ($x == 1 ? "" : "s")),
                "$factor factor -a williams -x $x -k $opt_k");
 }
