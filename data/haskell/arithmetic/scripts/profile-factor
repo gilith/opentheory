@@ -11,12 +11,11 @@ use Getopt::Std;
 # Process options.
 ###############################################################################
 
-use vars qw($opt_t $opt_n $opt_k $opt_h $opt_v);
+use vars qw($opt_t $opt_n $opt_k $opt_x $opt_h $opt_v);
 
 $opt_n = 100;
-$opt_k = 1000;
 
-getopts('t:n:k:hv');
+getopts('t:n:k:x:hv');
 
 if ($opt_h or scalar @ARGV != 0)
 {
@@ -33,6 +32,9 @@ $|++;
 
 my $program = "profile-factor";
 
+my $factor = "dist/build/arithmetic/arithmetic";
+[ -x $factor ] or die "$program: $factor not an executable";
+
 ###############################################################################
 # Helper functions.
 ###############################################################################
@@ -43,7 +45,11 @@ sub commify {
   return $_;
 }
 
-sub get_results {
+###############################################################################
+# How many bases are needed for the Williams p+1 factorization method?
+###############################################################################
+
+sub williams_bases_results {
   (scalar @_ == 2) or die;
   my $name = shift @_;
   my $cmdprefix = shift @_;
@@ -95,21 +101,56 @@ sub get_results {
   print STDOUT "</tr>\n";
 }
 
+sub williams_bases {
+  (scalar @_ == 0) or die;
+
+  print STDOUT "<h2>Williams p+1 Method (";
+  if ($opt_k) { print STDOUT (commify($opt_k) . " primes, "); }
+  if ($opt_t) { print STDOUT (commify($opt_t) . " second limit, "); }
+  print STDOUT (commify($opt_n) . " samples)</h2>\n");
+  print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
+  williams_bases_results ("<em>log<sub>2</sub>N</em>", "header");
+
+  my $cmd = "$factor factor -a williams";
+  if ($opt_k) { $cmd .= " -k $opt_k"; }
+  for (my $x = 1; $x <= 8; ++$x) {
+    williams_bases_results (("$x base" . ($x == 1 ? "" : "s")),
+                            ($cmd . " -x $x"));
+  }
+  print STDOUT "</table>\n";
+}
+
+###############################################################################
+# What is the largest prime needed for the Williams p+1 factorization method?
+###############################################################################
+
+sub williams_prime {
+  (scalar @_ == 0) or die;
+
+  print STDOUT "<h2>Williams p+1 Method (";
+  if ($opt_k) { print STDOUT (commify($opt_k) . " primes, "); }
+  if ($opt_t) { print STDOUT (commify($opt_t) . " second limit, "); }
+  print STDOUT (commify($opt_n) . " samples)</h2>\n");
+  print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
+  williams_bases_results ("<em>log<sub>2</sub>N</em>", "header");
+
+  my $cmd = "$factor factor -a williams";
+  if ($opt_k) { $cmd .= " -k $opt_k"; }
+  if ($opt_x) { $cmd .= " -x $opt_x"; }
+  for (my $x = 1; $x <= 8; ++$x) {
+    williams_bases_results (("$x base" . ($x == 1 ? "" : "s")),
+                            ($cmd . " -x $x"));
+  }
+  print STDOUT "</table>\n";
+}
+
+
 ###############################################################################
 # Main program.
 ###############################################################################
 
-my $factor = "dist/build/arithmetic/arithmetic";
-[ -x $factor ] or die "$program: $factor not an executable";
-
-print STDOUT ("<h2>Williams p+1 Method (" . commify($opt_k) . " primes, " . commify($opt_n) . " samples)</h2>\n");
-print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
-get_results ("<em>log<sub>2</sub>N</em>", "header");
-for (my $x = 1; $x <= 8; ++$x) {
-  get_results (("$x base" . ($x == 1 ? "" : "s")),
-               "$factor factor -a williams -x $x -k $opt_k");
-}
-print STDOUT "</table>\n";
+williams_bases();
+#williams_prime();
 
 __END__
 
@@ -140,6 +181,10 @@ Perform N factoring attempts for each bitwidth.
 =item B<-k N>
 
 Use the first N primes.
+
+=item B<-x N>
+
+Use N bases.
 
 =item B<-h>
 

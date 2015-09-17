@@ -10,6 +10,7 @@ portability: portable
 module Arithmetic.Williams
 where
 
+import Debug.Trace(trace)
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Primitive.Random as Random
@@ -89,7 +90,9 @@ method n =
 
     check v p k =
         if g == n then Right Nothing
-        else if 1 < g then Left g
+        else if 1 < g then
+          trace ("Williams factorization succeeded with prime " ++ show p) $
+          Left g
         else Right (Just (pow v p k))
       where
         g = gcd n (v - 2)
