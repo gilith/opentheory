@@ -10,7 +10,6 @@ portability: portable
 module Arithmetic.Factor
 where
 
-import qualified Data.List as List
 import qualified Data.Map as Map
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
@@ -87,7 +86,7 @@ totient =
 
 instance Show Factor where
   show =
-      multiplicative showPK (++) "1"
+      multiplicative showPK (\s t -> s ++ " * " ++ t) "1"
     where
       showPK p k = show p ++ showExp k
       showExp k = if k == 1 then "" else "^" ++ show k
@@ -96,6 +95,7 @@ factorPower :: Natural -> Natural -> Maybe (Natural,Natural)
 factorPower pmin n =
     go n primes
   where
+    go _ [] = error "out of primes!"
     go s (p : ps) =
         if t < pmin then Nothing
         else if t ^ p == n then Just (t,p)
@@ -132,7 +132,7 @@ factor k ff =
             Just (m,i) -> mexp (go m r2) i
             Nothing -> case ff n r2 of
                          Nothing -> Nothing
-                         Just p -> mmult (go p r3) (go (n `div` p) r4)
+                         Just m -> mmult (go m r3) (go (n `div` m) r4)
       where
         (r1,r24) = Random.split rnd
         (r2,r34) = Random.split r24

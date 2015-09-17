@@ -229,9 +229,10 @@ usageOperation oper =
 -- Computation
 --------------------------------------------------------------------------------
 
-computeFactorWilliams :: Options -> Natural -> Random.Random -> Maybe Natural
+computeFactorWilliams :: Options ->
+                         Natural -> Random.Random -> Maybe Factor.Factor
 computeFactorWilliams opts n rnd =
-    Williams.factor x k n r3
+    Factor.factor 1000 (Williams.factor x k) n r3
   where
     x = case optX opts of
           Nothing -> 4
@@ -244,12 +245,12 @@ computeFactorWilliams opts n rnd =
 
 computeFactor :: Operation -> Options -> Random.Random -> String
 computeFactor oper opts rnd =
-    case m of
+    case f of
       Nothing -> error $ "factorization failed for " ++ show n
-      Just p -> show n ++ " == " ++ show p ++ " * " ++ show (n `div` p)
+      Just x -> show n ++ " == " ++ show x
   where
     n = rsaInputNatural (getInput oper "n" (optN opts)) r1
-    m = case optA opts of
+    f = case optA opts of
           Williams -> computeFactorWilliams opts n r2
           _ -> usageOperation oper
     (r1,r2) = Random.split rnd
