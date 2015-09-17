@@ -1,5 +1,5 @@
 {- |
-module: Arithmetic.Heap
+module: Arithmetic.Utility.Heap
 description: Leftist heaps
 license: MIT
 
@@ -7,7 +7,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
-module Arithmetic.Heap
+module Arithmetic.Utility.Heap
   ( Heap,
     size,
     isEmpty,

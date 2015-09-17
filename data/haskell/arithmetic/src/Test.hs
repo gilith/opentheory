@@ -23,12 +23,10 @@ import qualified OpenTheory.Natural.Uniform as Uniform
 import Arithmetic.Random
 import Arithmetic.Prime
 import qualified Arithmetic.ContinuedFraction as ContinuedFraction
-import qualified Arithmetic.Factor as Factor
-import qualified Arithmetic.Lucas as Lucas
+import qualified Arithmetic.Prime.Factor as Factor
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
 import qualified Arithmetic.Quadratic as Quadratic
-import qualified Arithmetic.Smooth as Smooth
 import qualified Arithmetic.Williams as Williams
 
 propPrimes :: Natural -> Bool
@@ -54,11 +52,14 @@ propRandomRSA wp rnd =
     n = Factor.toNatural (Factor.randomRSA w r1)
     (r1,r2) = Random.split rnd
 
-propSmoothInjective :: Natural -> Natural -> Bool
-propSmoothInjective k np =
-    Smooth.toNatural (Smooth.fromNatural k n) == n
+propTrialDivision :: Natural -> Natural -> Bool
+propTrialDivision k np =
+    Factor.toNatural f * m == n &&
+    all (\p -> not (divides p m)) ps
   where
     n = np + 1
+    ps = take (fromIntegral k) primes
+    (f,m) = Factor.trialDivision ps n
 
 propModularNegate :: Natural -> Random.Random -> Bool
 propModularNegate np rnd =
@@ -366,7 +367,7 @@ main =
     do check "Sieve of Eratosphenes" propPrimes
        check "Generating random primes" propRandomPrime
        check "Generating random RSA moduli" propRandomRSA
-       check "Smooth constructor is injective" propSmoothInjective
+       check "Trial division" propTrialDivision
        check "Modular negate" propModularNegate
        check "Modular invert" propModularInvert
        check "Fermat's little theorem" propFermat

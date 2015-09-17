@@ -12,7 +12,7 @@ where
 
 import OpenTheory.Primitive.Natural
 
-import qualified Arithmetic.Heap as Heap
+import qualified Arithmetic.Utility.Heap as Heap
 
 newtype Sieve = Sieve { unSieve :: Heap.Heap (Natural,Natural) }
 

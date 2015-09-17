@@ -19,9 +19,8 @@ import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 
-import Arithmetic.Prime
 import Arithmetic.Random
-import qualified Arithmetic.Factor as Factor
+import qualified Arithmetic.Prime.Factor as Factor
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
 import qualified Arithmetic.Williams as Williams

@@ -13,7 +13,6 @@ where
 import OpenTheory.Primitive.Natural
 import OpenTheory.Primitive.Random as Random
 import OpenTheory.Natural
-import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Natural.Uniform as Uniform
 
 import Arithmetic.Random

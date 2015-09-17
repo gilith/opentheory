@@ -10,11 +10,6 @@ portability: portable
 module Arithmetic.Lucas
 where
 
-import OpenTheory.Primitive.Natural
-import qualified OpenTheory.Natural.Bits as Bits
-
-import Arithmetic.Utility
-
 advance :: (a -> a -> a) -> (a -> a -> a) -> a -> a -> a -> a -> a
 advance sub mult p q x y = sub (mult p y) (mult q x)
 

@@ -1,5 +1,5 @@
 {- |
-module: Arithmetic.Factor
+module: Arithmetic.Prime.Factor
 description: Factorized natural numbers
 license: MIT
 
@@ -7,7 +7,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
-module Arithmetic.Factor
+module Arithmetic.Prime.Factor
 where
 
 import qualified Data.Map as Map
@@ -64,6 +64,21 @@ trialDivision =
       where
         (r,s) = factorOut p n
         (f,m) = go ps s
+
+isSmooth :: [Natural] -> Natural -> Maybe Factor
+isSmooth ps n =
+    if m == 1 then Just f else Nothing
+  where
+    (f,m) = trialDivision ps n
+
+nextSmooth :: [Natural] -> Natural -> Factor
+nextSmooth ps =
+    go
+  where
+    go n =
+        case isSmooth ps n of
+          Nothing -> go (n + 1)
+          Just f -> f
 
 multiplicative :: (Natural -> Natural -> a) -> (a -> a -> a) -> a -> Factor -> a
 multiplicative pkA multA oneA f =
@@ -141,7 +156,7 @@ factor k ff =
     mmult (Just f1) (Just f2) = Just (multiply f1 f2)
     mmult _ _ = Nothing
 
-    mexp (Just f) i = Just (Arithmetic.Factor.exp f i)
+    mexp (Just f) i = Just (Arithmetic.Prime.Factor.exp f i)
     mexp Nothing _ = Nothing
 
 randomRSA :: Natural -> Random.Random -> Factor
