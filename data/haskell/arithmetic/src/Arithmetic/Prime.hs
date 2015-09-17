@@ -106,12 +106,3 @@ randomPrime5Mod8 w =
     randomFilter check (randomPrime w)
   where
     check p = p `mod` 8 == 5
-
-randomCompositeRSA :: Natural -> Random.Random -> Natural
-randomCompositeRSA w =
-    randomFilter check gen
-  where
-    check n = Bits.width n == w
-    w1 = w `div` 2
-    w2 = w - w1
-    gen = randomPairWith (*) (randomPrime w1) (randomPrime w2)

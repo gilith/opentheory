@@ -45,13 +45,13 @@ propRandomPrime wp rnd =
     p = randomPrime w r1
     (r1,r2) = Random.split rnd
 
-propRandomCompositeRSA :: Natural -> Random.Random -> Bool
-propRandomCompositeRSA wp rnd =
+propRandomRSA :: Natural -> Random.Random -> Bool
+propRandomRSA wp rnd =
     Bits.width n == w &&
     not (isPrime n r2)
   where
     w = wp + 4
-    n = randomCompositeRSA w r1
+    n = Factor.toNatural (Factor.randomRSA w r1)
     (r1,r2) = Random.split rnd
 
 propSmoothInjective :: Natural -> Natural -> Bool
@@ -345,7 +345,7 @@ propWilliamsNthEqTwo pp a mp rnd =
 
 propWilliamsFactor :: Natural -> Natural -> Natural -> Random.Random -> Bool
 propWilliamsFactor np x k rnd =
-    case Williams.factor n x (Just k) rnd of
+    case Williams.factor x (Just k) n rnd of
       Nothing -> True
       Just p -> 1 < p && p < n && divides p n
   where
@@ -365,7 +365,7 @@ main :: IO ()
 main =
     do check "Sieve of Eratosphenes" propPrimes
        check "Generating random primes" propRandomPrime
-       check "Generating random RSA composites" propRandomCompositeRSA
+       check "Generating random RSA moduli" propRandomRSA
        check "Smooth constructor is injective" propSmoothInjective
        check "Modular negate" propModularNegate
        check "Modular invert" propModularInvert

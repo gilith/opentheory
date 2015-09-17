@@ -102,9 +102,9 @@ method n =
         mult = Modular.multiply n
 
 -- Works for odd numbers at least 5
-factor :: Natural -> Natural -> Maybe Natural -> Random.Random ->
-          Maybe Natural
-factor n x k rnd =
+factor :: Natural -> Maybe Natural ->
+          Natural -> Random.Random -> Maybe Natural
+factor x k n rnd =
     case base n x rnd of
       Left g -> Just g
       Right vs -> method n vs ps

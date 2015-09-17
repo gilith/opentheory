@@ -133,9 +133,9 @@ oddInputNatural :: InputNatural -> Random.Random -> Natural
 oddInputNatural (Fixed n) _ = n
 oddInputNatural (Width w) r = randomOdd w r
 
-compositeRSAInputNatural :: InputNatural -> Random.Random -> Natural
-compositeRSAInputNatural (Fixed n) _ = n
-compositeRSAInputNatural (Width w) rnd = randomCompositeRSA w rnd
+rsaInputNatural :: InputNatural -> Random.Random -> Natural
+rsaInputNatural (Fixed n) _ = n
+rsaInputNatural (Width w) rnd = Factor.toNatural (Factor.randomRSA w rnd)
 
 getInput :: Operation -> String -> Maybe InputNatural -> InputNatural
 getInput oper s m =
@@ -231,7 +231,7 @@ usageOperation oper =
 
 computeFactorWilliams :: Options -> Natural -> Random.Random -> Maybe Natural
 computeFactorWilliams opts n rnd =
-    Williams.factor n x k r3
+    Williams.factor x k n r3
   where
     x = case optX opts of
           Nothing -> 4
@@ -248,7 +248,7 @@ computeFactor oper opts rnd =
       Nothing -> error $ "factorization failed for " ++ show n
       Just p -> show n ++ " == " ++ show p ++ " * " ++ show (n `div` p)
   where
-    n = compositeRSAInputNatural (getInput oper "n" (optN opts)) r1
+    n = rsaInputNatural (getInput oper "n" (optN opts)) r1
     m = case optA opts of
           Williams -> computeFactorWilliams opts n r2
           _ -> usageOperation oper
