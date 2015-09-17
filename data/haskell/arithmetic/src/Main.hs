@@ -234,7 +234,7 @@ computeFactorWilliams opts n rnd =
     Factor.factor 1000 (Williams.factor x k) n r3
   where
     x = case optX opts of
-          Nothing -> 4
+          Nothing -> 5
           Just w -> widthInputNatural w r1
     k = case optK opts of
           Nothing -> Nothing
