@@ -10,9 +10,10 @@ portability: portable
 module Arithmetic.Prime.Factor
 where
 
-import qualified Data.Map as Map
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
+import qualified Data.Map as Map
+import qualified Data.Maybe as Maybe
 import qualified OpenTheory.Primitive.Random as Random
 
 import Arithmetic.Prime
@@ -30,8 +31,26 @@ isOne = Map.null . unFactor
 primePower :: Natural -> Natural -> Factor
 primePower p k = if k == 0 then one else Factor {unFactor = Map.singleton p k}
 
+destPrimePower :: Factor -> Maybe (Natural,Natural)
+destPrimePower f =
+    if Map.size m == 1 then Maybe.listToMaybe (Map.toList m) else Nothing
+  where
+    m = unFactor f
+
+isPrimePower :: Factor -> Bool
+isPrimePower = Maybe.isJust . destPrimePower
+
 prime :: Natural -> Factor
 prime p = primePower p 1
+
+destPrime :: Factor -> Maybe Natural
+destPrime f =
+    case destPrimePower f of
+      Just (p,1) -> Just p
+      _ -> Nothing
+
+isPrime :: Factor -> Bool
+isPrime = Maybe.isJust . destPrime
 
 multiply :: Factor -> Factor -> Factor
 multiply f1 f2 =
@@ -65,18 +84,21 @@ trialDivision =
         (r,s) = factorOut p n
         (f,m) = go ps s
 
-isSmooth :: [Natural] -> Natural -> Maybe Factor
-isSmooth ps n =
+destSmooth :: [Natural] -> Natural -> Maybe Factor
+destSmooth ps n =
     if m == 1 then Just f else Nothing
   where
     (f,m) = trialDivision ps n
+
+isSmooth :: [Natural] -> Natural -> Bool
+isSmooth ps n = Maybe.isJust (destSmooth ps n)
 
 nextSmooth :: [Natural] -> Natural -> Factor
 nextSmooth ps =
     go
   where
     go n =
-        case isSmooth ps n of
+        case destSmooth ps n of
           Nothing -> go (n + 1)
           Just f -> f
 
@@ -141,7 +163,7 @@ factor k ff =
         (f,m) = trialDivision ptrials n
 
     go n rnd =
-        if isPrime n r1 then Just (prime n)
+        if Arithmetic.Prime.isPrime n r1 then Just (prime n)
         else
           case factorPower pmin n of
             Just (m,i) -> mexp (go m r2) i

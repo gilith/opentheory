@@ -244,12 +244,13 @@ computeFactorWilliams opts n rnd =
 
 computeFactor :: Operation -> Options -> Random.Random -> String
 computeFactor oper opts rnd =
-    case f of
+    case x of
       Nothing -> error $ "factorization failed for " ++ show n
-      Just x -> show n ++ " == " ++ show x
+      Just f -> show n ++ (if Factor.isPrime f then " is prime"
+                           else " == " ++ show f)
   where
     n = rsaInputNatural (getInput oper "n" (optN opts)) r1
-    f = case optA opts of
+    x = case optA opts of
           Williams -> computeFactorWilliams opts n r2
           _ -> usageOperation oper
     (r1,r2) = Random.split rnd

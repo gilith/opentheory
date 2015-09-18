@@ -10,8 +10,10 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   This package implements a library of natural number arithmetic functions,
-  including Montgomery multiplication, continued fractions, Lucas sequences
-  and the Williams p+1 factorization method.
+  including Montgomery multiplication, the Miller-Rabin primality test,
+  Lucas sequences, the Williams p+1 factorization method, continued fraction
+  representations of natural number square roots, the Jacobi symbol and the
+  Tonelli-Shanks algorithm for finding square roots modulo a prime.
 
 Library
   build-depends:
