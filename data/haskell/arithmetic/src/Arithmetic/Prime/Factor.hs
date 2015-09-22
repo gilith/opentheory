@@ -65,6 +65,28 @@ exp f n =
     else if n == 1 then f
     else Factor {unFactor = Map.map ((*) n) (unFactor f)}
 
+root :: Natural -> Factor -> (Factor,Factor)
+root n f =
+    if n == 0 then error "Arithmetic.Prime.Factor.root: n == 0"
+    else if n == 1 then (f,one)
+    else (fq,fr)
+  where
+    m = unFactor f
+    fq = Factor {unFactor = Map.mapMaybe nq m}
+    fr = Factor {unFactor = Map.mapMaybe nr m}
+    nq k = mz (k `div` n)
+    nr k = mz (k `mod` n)
+    mz k = if k == 0 then Nothing else Just k
+
+destRoot :: Natural -> Factor -> Maybe Factor
+destRoot n f =
+    if isOne fr then Just fq else Nothing
+  where
+    (fq,fr) = root n f
+
+isRoot :: Natural -> Factor -> Bool
+isRoot n = Maybe.isJust . destRoot n
+
 gcd :: Factor -> Factor -> Factor
 gcd f1 f2 =
     Factor {unFactor = Map.intersectionWith min m1 m2}
