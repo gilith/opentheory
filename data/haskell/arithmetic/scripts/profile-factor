@@ -215,7 +215,7 @@ sub williams_prime {
 # Main program.
 ###############################################################################
 
-#williams_bases();
+williams_bases();
 williams_prime();
 
 __END__
