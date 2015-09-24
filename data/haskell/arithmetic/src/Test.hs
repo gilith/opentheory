@@ -48,7 +48,7 @@ propRandomRSA wp rnd =
     Bits.width n == w &&
     not (isPrime n r2)
   where
-    w = wp + 4
+    w = wp + 5
     n = Factor.toNatural (Factor.randomRSA w r1)
     (r1,r2) = Random.split rnd
 

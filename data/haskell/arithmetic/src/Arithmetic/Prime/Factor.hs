@@ -207,7 +207,7 @@ randomRSA :: Natural -> Random.Random -> Factor
 randomRSA w =
     randomFilter check gen
   where
-    check f = Bits.width (toNatural f) == w
+    check f = not (isPrimePower f) && Bits.width (toNatural f) == w
 
     gen rnd =
         multiply (prime p1) (prime p2)

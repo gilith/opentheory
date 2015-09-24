@@ -124,22 +124,88 @@ sub williams_bases {
 # What is the largest prime needed for the Williams p+1 factorization method?
 ###############################################################################
 
+sub williams_primes_results {
+  (scalar @_ == 2) or die;
+  my $name = shift @_;
+  my $cmd = shift @_;
+
+  print STDOUT "<tr>";
+
+  print STDOUT "<td align=\"right\"><b>";
+  print STDOUT $name;
+  print STDOUT "</b></td>";
+
+  if ($cmd eq "header") {
+    for (my $p = 10; $p <= 100; $p += 10) {
+      print STDOUT "<td align=\"right\"><b>";
+      print STDOUT $p;
+      print STDOUT "%</b></td>";
+    }
+  }
+  else {
+    if ($opt_t) {
+      $cmd = "(ulimit -t $opt_t ; $cmd)";
+    }
+
+    $cmd .= ' 2>&1';
+
+    if ($opt_v) {
+      print STDOUT "\n$cmd\n";
+    }
+
+    my @ps = ();
+
+    for (my $j = 0; $j < $opt_n; $j++) {
+      my @r = `$cmd`;
+
+      if ($opt_v) {
+        print STDOUT (join ("",@r));
+      }
+
+      if ($? == 0) {
+        my $p = $r[0];
+        chomp $p;
+        if ($p =~ /^Williams p[+]1 method succeeded with prime ([[:digit:]]+)$/) {
+          $p = int($1);
+        }
+        else {
+          $p = 0;
+        }
+        push @ps, $p;
+      }
+    }
+    my @xs = sort {$a <=> $b} @ps;
+
+    for (my $p = 10; $p <= 100; $p += 10) {
+      my $i = int(($opt_n * $p) / 100);
+      if ($i != 0) { --$i; }
+      my $p = "&mdash;";
+      if ($i < scalar @xs) { $p = commify($xs[$i]); }
+      print STDOUT "<td align=\"right\">";
+      print STDOUT $p;
+      print STDOUT "</td>";
+    }
+  }
+
+  print STDOUT "</tr>\n";
+}
+
 sub williams_prime {
   (scalar @_ == 0) or die;
 
   print STDOUT "<h2>Williams p+1 Method (";
+  if ($opt_x) { print STDOUT (commify($opt_x) . " base" . (($opt_x == 1) ? "" : "s") . ", "); }
   if ($opt_k) { print STDOUT (commify($opt_k) . " primes, "); }
   if ($opt_t) { print STDOUT (commify($opt_t) . " second limit, "); }
   print STDOUT (commify($opt_n) . " samples)</h2>\n");
   print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
-  williams_bases_results ("<em>log<sub>2</sub>N</em>", "header");
+  williams_primes_results ("<em>log<sub>2</sub>N</em>", "header");
 
   my $cmd = "$factor factor -a williams";
-  if ($opt_k) { $cmd .= " -k $opt_k"; }
   if ($opt_x) { $cmd .= " -x $opt_x"; }
-  for (my $x = 1; $x <= 8; ++$x) {
-    williams_bases_results (("$x base" . ($x == 1 ? "" : "s")),
-                            ($cmd . " -x $x"));
+  if ($opt_k) { $cmd .= " -k $opt_k"; }
+  for (my $m = 10; $m <= 100; $m += 10) {
+    williams_primes_results ("$m", ($cmd . " -n [$m]"));
   }
   print STDOUT "</table>\n";
 }
@@ -149,8 +215,8 @@ sub williams_prime {
 # Main program.
 ###############################################################################
 
-williams_bases();
-#williams_prime();
+#williams_bases();
+williams_prime();
 
 __END__
 
