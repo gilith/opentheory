@@ -136,7 +136,7 @@ sub williams_primes_results {
   print STDOUT "</b></td>";
 
   if ($cmd eq "header") {
-    for (my $p = 10; $p <= 100; $p += 10) {
+    for (my $p = 0; $p <= 100; $p += 5) {
       print STDOUT "<td align=\"right\"><b>";
       print STDOUT $p;
       print STDOUT "%</b></td>";
@@ -176,7 +176,7 @@ sub williams_primes_results {
     }
     my @xs = sort {$a <=> $b} @ps;
 
-    for (my $p = 10; $p <= 100; $p += 10) {
+    for (my $p = 0; $p <= 100; $p += 5) {
       my $i = int(($opt_n * $p) / 100);
       if ($i != 0) { --$i; }
       my $p = "&mdash;";
@@ -210,13 +210,30 @@ sub williams_prime {
   print STDOUT "</table>\n";
 }
 
+###############################################################################
+# Standard profile of the Williams p+1 factorization method.
+###############################################################################
+
+sub williams_profile {
+  (scalar @_ == 0) or die;
+
+  $opt_k = 1000;
+  $opt_n = 10000;
+  williams_bases();
+
+  print STDOUT "\n";
+  $opt_x = 5;
+  $opt_k = 10000;
+  williams_prime();
+}
 
 ###############################################################################
 # Main program.
 ###############################################################################
 
-williams_bases();
-williams_prime();
+#williams_bases();
+#williams_prime();
+williams_profile();
 
 __END__
 
