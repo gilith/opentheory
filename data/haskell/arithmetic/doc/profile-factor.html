@@ -8,9 +8,17 @@
 <body>
 <h1>Profiling Factoring Algorithms</h1>
 
-<h2>Notation</h2>
+<h2>Randomly Generating Numbers to Factor</h2>
 
-<p>In the following |<i>m</i>| is the bitwidth of the natural number <i>m</i>, which is defined as |<i>m</i>| = if <i>m</i> = 0 then 0 else &lfloor;log<sub>2</sub><i>m</i>&rfloor; + 1. The natural number <i>n</i> is always the product of distinct primes <i>p</i> and <i>q</i> such that |<i>p</i>| = &lfloor;|<i>n</i>| / 2&rfloor; and |<i>q</i>| = |<i>n</i>| - |<i>p</i>|. To generate a random natural number <i>n</i>, we choose primes <i>p</i> and <i>q</i> from are chosen uniformly at random from natural numbers of the correct bitwidth to satisfy these constraints).</p>
+<p>In the following |<i>m</i>| is the bitwidth of the natural number <i>m</i>, which is defined as |<i>m</i>| = if <i>m</i> = 0 then 0 else &lfloor;log<sub>2</sub><i>m</i>&rfloor; + 1. The natural number <i>n</i> is always the product of distinct primes <i>p</i> and <i>q</i> such that |<i>p</i>| = &lfloor;|<i>n</i>| / 2&rfloor; and |<i>q</i>| = |<i>n</i>| - |<i>p</i>|. To generate a random natural number <i>n</i> with a desired bitwidth |<i>n</i>| we use the following procedure:</p>
+
+<ol>
+<li>Choose a prime <i>p</i> uniformly at random from natural numbers with bitwidth &lfloor;|<i>n</i>| / 2&rfloor;.</li>
+
+<li>Choose a prime <i>q</i> uniformly at random from natural numbers with bitwidth |n| - &lfloor;|<i>n</i>| / 2&rfloor;.</li>
+
+<li>If <i>p</i> and <i>q</i> are distinct and |<i>pq</i>| = |<i>n</i>| then finish, otherwise go back to Step 1.</li>
+</ol>
 
 <h2>Williams p+1 Method (1,000 primes, 10 samples)</h2>
 <table cellspacing="0" cellpadding="4" border="1">
