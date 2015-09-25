@@ -51,26 +51,25 @@ sub commify {
 
 sub williams_bases_results {
   (scalar @_ == 2) or die;
-  my $name = shift @_;
+  my $m = shift @_;
   my $cmdprefix = shift @_;
 
   print STDOUT "<tr>";
 
   print STDOUT "<td align=\"right\"><b>";
-  print STDOUT $name;
+  print STDOUT $m;
   print STDOUT "</b></td>";
 
-  my $i = 10;
-  while ($i <= 100) {
+  for (my $x = 1; $x <= 8; ++$x) {
+    print STDOUT "<td align=\"right\">";
+
     if ($cmdprefix eq "header") {
-      print STDOUT "<td align=\"right\"><b>";
-      print STDOUT $i;
-      print STDOUT "</b></td>";
+      print STDOUT "<b>";
+      print STDOUT ("$x base" . ($x == 1 ? "" : "s"));
+      print STDOUT "</b>";
     }
     else {
-      print STDOUT "<td align=\"right\">";
-
-      my $cmd = "$cmdprefix -n [$i]";
+      my $cmd = "$cmdprefix -x $x -n [$m]";
       if ($opt_t) {
         $cmd = "(ulimit -t $opt_t ; $cmd)";
       }
@@ -92,10 +91,10 @@ sub williams_bases_results {
 
       my $p = (100 * $s) / $opt_n;
       $p = ($p < 10.0) ? sprintf("%.1f",$p) : sprintf("%.0f",$p);
-      print STDOUT ($p . '%</td>');
+      print STDOUT ($p . '%');
     }
 
-    $i += 10;
+    print STDOUT "</b></td>";
   }
 
   print STDOUT "</tr>\n";
@@ -109,13 +108,12 @@ sub williams_bases {
   if ($opt_t) { print STDOUT (commify($opt_t) . " second limit, "); }
   print STDOUT (commify($opt_n) . " samples)</h2>\n");
   print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
-  williams_bases_results ("<em>log<sub>2</sub>N</em>", "header");
+  williams_bases_results ("|<i>n</i>|", "header");
 
   my $cmd = "$factor factor -a williams";
   if ($opt_k) { $cmd .= " -k $opt_k"; }
-  for (my $x = 1; $x <= 8; ++$x) {
-    williams_bases_results (("$x base" . ($x == 1 ? "" : "s")),
-                            ($cmd . " -x $x"));
+  for (my $m = 10; $m <= 100; $m += 10) {
+    williams_bases_results ($m, $cmd);
   }
   print STDOUT "</table>\n";
 }
@@ -199,7 +197,7 @@ sub williams_prime {
   if ($opt_t) { print STDOUT (commify($opt_t) . " second limit, "); }
   print STDOUT (commify($opt_n) . " samples)</h2>\n");
   print STDOUT "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\">\n";
-  williams_primes_results ("<em>log<sub>2</sub>N</em>", "header");
+  williams_primes_results ("|<i>n</i>|", "header");
 
   my $cmd = "$factor factor -a williams";
   if ($opt_x) { $cmd .= " -x $opt_x"; }
