@@ -231,7 +231,7 @@ usageOperation oper =
 computeFactorWilliams :: Options ->
                          Natural -> Random.Random -> Maybe Factor.Factor
 computeFactorWilliams opts n rnd =
-    Factor.factor 1000 (Williams.factor x k) n r3
+    Factor.factor 1 (Williams.factor x k) n r3
   where
     x = case optX opts of
           Nothing -> 5
