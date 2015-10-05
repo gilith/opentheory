@@ -175,6 +175,15 @@ in
       end;
 end;
 
+fun map f exp =
+    let
+      fun g x () = (f x, ())
+
+      val (exp',()) = maps g exp ()
+    in
+      exp'
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Symbols.                                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -323,6 +332,25 @@ fun eliminateUnwanted exp =
     in
       exp'
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Delete local symbol names.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun deleteLocalNames exp = raise Bug "ObjectExport.deleteLocalNames";
+(***
+    let
+      val () =
+          if savable exp then ()
+          else raise Bug "ObjectExport.deleteLocalNames: unsavable"
+
+      val del = ObjectUnwanted.empty
+
+      val (exp',_) = maps ObjectThm.sharingEliminateUnwanted exp elim
+    in
+      exp'
+    end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Convert to a given article version.                                       *)

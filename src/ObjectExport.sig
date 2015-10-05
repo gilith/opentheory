@@ -58,6 +58,8 @@ val member : Sequent.sequent -> export -> bool
 
 val fold : (ObjectThm.thm * 's -> 's) -> 's -> export -> 's
 
+val map : (ObjectThm.thm -> ObjectThm.thm option) -> export -> export option
+
 val maps :
     (ObjectThm.thm -> 's -> ObjectThm.thm option * 's) ->
     export -> 's -> export option * 's
@@ -79,6 +81,12 @@ val proofSymbols : export -> SymbolSet.set
 (* ------------------------------------------------------------------------- *)
 
 val eliminateUnwanted : export -> export option
+
+(* ------------------------------------------------------------------------- *)
+(* Delete local symbol names.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val deleteLocalNames : export -> export option
 
 (* ------------------------------------------------------------------------- *)
 (* Convert to a given article version.                                       *)
