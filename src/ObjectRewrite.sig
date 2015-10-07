@@ -7,26 +7,15 @@ signature ObjectRewrite =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of parameters for rewriting objects.                               *)
-(* ------------------------------------------------------------------------- *)
-
-type parameters =
-     {apply : Object.object' -> Object.object option,
-      savable : bool}
-
-(* ------------------------------------------------------------------------- *)
 (* Bottom-up object rewrites: return NONE for unchanged.                     *)
 (* ------------------------------------------------------------------------- *)
 
 type rewrite
 
-val new : parameters -> rewrite
+val new :
+    TermRewrite.rewrite -> (Object.object' -> Object.object option) -> rewrite
 
 val id : rewrite
-
-(* ------------------------------------------------------------------------- *)
-(* Applying rewrites.                                                        *)
-(* ------------------------------------------------------------------------- *)
 
 val sharingRewriteObject :
     Object.object -> rewrite -> Object.object option * rewrite

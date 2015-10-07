@@ -121,6 +121,7 @@ SRC = \
   src/ObjectStore.sig src/ObjectStore.sml \
   src/ObjectSymbol.sig src/ObjectSymbol.sml \
   src/ObjectRewrite.sig src/ObjectRewrite.sml \
+  src/ObjectRename.sig src/ObjectRename.sml \
   src/ObjectUnwanted.sig src/ObjectUnwanted.sml \
   src/ObjectVersion.sig src/ObjectVersion.sml \
   src/ObjectThm.sig src/ObjectThm.sml \

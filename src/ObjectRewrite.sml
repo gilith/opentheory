@@ -9,56 +9,59 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of parameters for rewriting objects.                               *)
-(* ------------------------------------------------------------------------- *)
-
-type parameters =
-     {apply : Object.object' -> Object.object option,
-      savable : bool};
-
-(* ------------------------------------------------------------------------- *)
 (* Bottom-up object rewrites: return NONE for unchanged.                     *)
 (* ------------------------------------------------------------------------- *)
 
 datatype rewrite =
     Rewrite of
-      {parameters : parameters,
+      {tmRewr : TermRewrite.rewrite,
+       apply : Object.object' -> Object.object option,
        seen : Object.object option IntMap.map};
 
-fun new parameters =
+fun new tmRewr apply =
     let
       val seen = IntMap.new ()
     in
       Rewrite
-        {parameters = parameters,
+        {tmRewr = tmRewr,
+         apply = apply,
          seen = seen}
     end;
 
-val id =
-    let
-      val apply = K NONE
-      and savable = true
-    in
-      new {apply = apply, savable = savable}
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Applying rewrites.                                                        *)
-(* ------------------------------------------------------------------------- *)
+val id = new TermRewrite.id (K NONE);
 
 local
-  fun rewriteObj apply savable =
+  fun rewriteObj apply =
       let
-        fun preDescent obj seen =
+        fun preDescent obj (tmRewr,seen) =
             let
               val i = Object.id obj
             in
               case IntMap.peek seen i of
-                NONE => {descend = true, result = (NONE,seen)}
-              | SOME obj' => {descend = false, result = (obj',seen)}
+                SOME obj' =>
+                {descend = false, result = (obj',(tmRewr,seen))}
+              | NONE =>
+                let
+                  val Object.Object' {data,provenance} = Object.dest obj
+                in
+                  case provenance of
+                    Object.Special _ =>
+                    {descend = true, result = (NONE,(tmRewr,seen))}
+                  | Object.Default =>
+                    let
+                      val (data',tmRewr) =
+                          ObjectData.sharingRewrite data tmRewr
+
+                      val obj' = Option.map Object.mkUnsavable data'
+
+                      val seen = IntMap.insert seen (i,obj')
+                    in
+                      {descend = false, result = (obj',(tmRewr,seen))}
+                    end
+                end
             end
 
-        fun postDescent obj0 obj1' seen =
+        fun postDescent obj0 obj1' (tmRewr,seen) =
             let
               val i = Object.id obj0
 
@@ -76,8 +79,10 @@ local
 
               val seen = IntMap.insert seen (i,obj2')
             in
-              (obj2',seen)
+              (obj2',(tmRewr,seen))
             end
+
+        val savable = true
       in
         Object.maps
           {preDescent = preDescent,
@@ -87,13 +92,11 @@ local
 in
   fun sharingRewriteObject obj rewr =
       let
-        val Rewrite {parameters,seen} = rewr
+        val Rewrite {tmRewr,apply,seen} = rewr
 
-        val {apply,savable} = parameters
+        val (obj',(tmRewr,seen)) = rewriteObj apply obj (tmRewr,seen)
 
-        val (obj',seen) = rewriteObj apply savable obj seen
-
-        val rewr = Rewrite {parameters = parameters, seen = seen}
+        val rewr = Rewrite {tmRewr = tmRewr, apply = apply, seen = seen}
       in
         (obj',rewr)
       end;

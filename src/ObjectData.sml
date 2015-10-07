@@ -583,6 +583,75 @@ fun consts d =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Rewrites.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingRewrite d rewr =
+    case d of
+      Num _ => (NONE,rewr)
+    | Name _ => (NONE,rewr)
+    | TypeOp t =>
+      let
+(*OpenTheoryDebug
+        val () =
+            if TypeOp.isUndef t then ()
+            else raise Bug "ObjectData.sharingRewrite: defined type operator"
+*)
+      in
+        (NONE,rewr)
+      end
+    | Type ty =>
+      let
+        val (ty',rewr) = TermRewrite.sharingRewriteType ty rewr
+
+        val d' = Option.map Type ty'
+      in
+        (d',rewr)
+      end
+    | Const c =>
+      let
+(*OpenTheoryDebug
+        val () =
+            if Const.isUndef c then ()
+            else raise Bug "ObjectData.sharingRewrite: defined constant"
+*)
+      in
+        (NONE,rewr)
+      end
+    | Var v =>
+      let
+        val (v',rewr) = TermRewrite.sharingRewriteVar v rewr
+
+        val d' = Option.map Var v'
+      in
+        (d',rewr)
+      end
+    | Term tm =>
+      let
+        val (tm',rewr) = TermRewrite.sharingRewriteTerm tm rewr
+
+        val d' = Option.map Term tm'
+      in
+        (d',rewr)
+      end
+    | Thm _ => raise Bug "ObjectData.sharingRewrite: theorem"
+    | List l =>
+      let
+        val (l',rewr) = TermRewrite.sharingRewriteList sharingRewrite l rewr
+
+        val d' = Option.map List l'
+      in
+        (d',rewr)
+      end;
+
+fun rewrite rewr d =
+    let
+      val (d',_) = sharingRewrite d rewr
+    in
+      d'
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Searching for subterms.                                                   *)
 (* ------------------------------------------------------------------------- *)
 

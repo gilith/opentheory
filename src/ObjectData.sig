@@ -276,6 +276,15 @@ val addSharingConsts : data -> Term.sharingConsts -> Term.sharingConsts
 val consts : data -> ConstSet.set
 
 (* ------------------------------------------------------------------------- *)
+(* Rewrites.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingRewrite :
+    data -> TermRewrite.rewrite -> data option * TermRewrite.rewrite
+
+val rewrite : TermRewrite.rewrite -> data -> data option
+
+(* ------------------------------------------------------------------------- *)
 (* Searching for subterms.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
