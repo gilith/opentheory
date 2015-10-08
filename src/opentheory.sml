@@ -800,6 +800,7 @@ val helpFooter = "";
 datatype info =
     ArticleInfo of ArticleVersion.version option
   | AssumptionsInfo
+  | DirectoryInfo
   | DocumentInfo
   | FilesInfo
   | FormatInfo of infoFormat
@@ -999,6 +1000,9 @@ in
        {switches = ["--files"], arguments = [],
         description = "list package files",
         processor = beginOpt endOpt (fn f => addInfoOutput f FilesInfo)},
+       {switches = ["--directory"], arguments = [],
+        description = "output package directory",
+        processor = beginOpt endOpt (fn f => addInfoOutput f DirectoryInfo)},
        {switches = ["--document"], arguments = [],
         description = "output package document in HTML format",
         processor = beginOpt endOpt (fn f => addInfoOutput f DocumentInfo)},
@@ -2140,6 +2144,19 @@ local
           val {filename} = file
         in
           ObjectTheorems.toTextFile {theorems = ths, filename = filename}
+        end
+      | DirectoryInfo =>
+        let
+          val {directory} =
+              case getDirectory () of
+                SOME d => d
+              | NONE => raise Error "no directory information available"
+
+          val sl = [directory, "\n"]
+
+          val strm = Stream.fromList sl
+        in
+          Stream.toTextFile file strm
         end
       | DocumentInfo =>
         let
