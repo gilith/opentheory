@@ -66,6 +66,7 @@ val fromTextFile :
 val toTextFile :
     {article : article,
      version : ArticleVersion.version,
+     clearLocalNames : bool,
      filename : string} -> unit
 
 end

@@ -9,6 +9,12 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val emptyString = "_";
+
+(* ------------------------------------------------------------------------- *)
 (* A type of names.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -18,11 +24,33 @@ datatype name =
        component : Namespace.component,
        toNamespace : Namespace.namespace};
 
-fun mk (ns,c) =
+(* ------------------------------------------------------------------------- *)
+(* The empty name.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val empty =
     Name
-      {namespace = ns,
-       component = c,
-       toNamespace = Namespace.mkNested (ns,c)};
+      {namespace = Namespace.global,
+       component = Namespace.emptyComponent,
+       toNamespace = Namespace.global};
+
+fun isEmpty (Name {toNamespace = ns, ...}) = Namespace.isGlobal ns;
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun mk (ns,c) =
+    if Namespace.isGlobal ns andalso Namespace.isEmptyComponent c then empty
+    else
+      let
+        val tns = Namespace.mkNested (ns,c)
+      in
+        Name
+          {namespace = ns,
+           component = c,
+           toNamespace = tns}
+      end;
 
 fun dest (Name {namespace = ns, component = c, ...}) = (ns,c);
 
@@ -33,14 +61,16 @@ fun component (Name {component = x, ...}) = x;
 fun toNamespace (Name {toNamespace = x, ...}) = x;
 
 fun fromNamespace tns =
-    let
-      val (ns,c) = Namespace.destNested tns
-    in
-      Name
-        {namespace = ns,
-         component = c,
-         toNamespace = tns}
-    end;
+    if Namespace.isGlobal tns then empty
+    else
+      let
+        val (ns,c) = Namespace.destNested tns
+      in
+        Name
+          {namespace = ns,
+           component = c,
+           toNamespace = tns}
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* The top level namespace.                                                  *)
@@ -476,11 +506,15 @@ end;
 
 val quotedFromString = Parse.fromString quotedParser;
 
-val pp = Print.ppMap toNamespace Namespace.pp;
+fun pp n =
+    if isEmpty n then Print.ppString emptyString
+    else Namespace.pp (toNamespace n);
 
 val ppQuoted = Print.ppMap toNamespace Namespace.ppQuoted;
 
-fun toHtml n = Namespace.toHtml (toNamespace n);
+fun toHtml n =
+    if isEmpty n then [Html.Text emptyString]
+    else Namespace.toHtml (toNamespace n);
 
 val ppList = Print.ppList pp;
 

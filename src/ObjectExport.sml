@@ -316,16 +316,19 @@ in
       end;
 end;
 
+fun visibleSymbols exp = Summary.symbol (Summary.fromThms (toThms exp));
+
 (* ------------------------------------------------------------------------- *)
 (* Eliminate unwanted subterms.                                              *)
 (* ------------------------------------------------------------------------- *)
 
 fun eliminateUnwanted exp =
     let
+(*OpenTheoryDebug
       val () =
           if savable exp then ()
           else raise Bug "ObjectExport.eliminateUnwanted: unsavable"
-
+*)
       val elim = ObjectUnwanted.empty
 
       val (exp',_) = maps ObjectThm.sharingEliminateUnwanted exp elim
@@ -334,23 +337,29 @@ fun eliminateUnwanted exp =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Delete local symbol names.                                                *)
+(* Clear local symbol names.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun deleteLocalNames exp = raise Bug "ObjectExport.deleteLocalNames";
-(***
+fun clearLocalNames exp =
     let
+(*OpenTheoryDebug
       val () =
           if savable exp then ()
-          else raise Bug "ObjectExport.deleteLocalNames: unsavable"
+          else raise Bug "ObjectExport.clearLocalNames: unsavable"
+*)
+      val visible = visibleSymbols exp
 
-      val del = ObjectUnwanted.empty
+      fun rename sym =
+          if SymbolSet.member sym visible then NONE
+          else if Name.isEmpty (Symbol.name sym) then NONE
+          else SOME Name.empty
 
-      val (exp',_) = maps ObjectThm.sharingEliminateUnwanted exp elim
+      val ren = ObjectRename.new rename
+
+      val (exp',_) = maps ObjectThm.sharingRename exp ren
     in
       exp'
     end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Convert to a given article version.                                       *)

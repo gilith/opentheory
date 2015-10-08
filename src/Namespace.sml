@@ -22,10 +22,16 @@ and separatorChar = #".";
 
 type component = string;
 
+(* The empty component *)
+
+val emptyComponent = "";
+
+fun isEmptyComponent s = size s = 0;
+
 (* A total ordering *)
 
 fun compareComponent (s1,s2) =
-    case (String.size s1 = 0, String.size s2 = 0) of
+    case (isEmptyComponent s1, isEmptyComponent s2) of
       (true,true) => EQUAL
     | (true,false) => LESS
     | (false,true) => GREATER

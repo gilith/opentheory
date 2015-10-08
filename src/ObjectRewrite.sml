@@ -90,7 +90,7 @@ local
            savable = savable}
       end;
 in
-  fun sharingRewriteObject obj rewr =
+  fun sharingRewrite obj rewr =
       let
         val Rewrite {tmRewr,apply,seen} = rewr
 
@@ -102,9 +102,9 @@ in
       end;
 end;
 
-fun rewriteObject rewr obj =
+fun rewrite rewr obj =
     let
-      val (obj',_) = sharingRewriteObject obj rewr
+      val (obj',_) = sharingRewrite obj rewr
     in
       obj'
     end;

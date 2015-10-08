@@ -1241,6 +1241,7 @@ local
                 Article.toTextFile
                   {article = art,
                    version = ArticleVersion.install,
+                   clearLocalNames = false,
                    filename = destFilename}
 
             val node =

@@ -54,6 +54,13 @@ val sharingEliminateUnwanted :
     thm -> ObjectUnwanted.eliminate -> thm option * ObjectUnwanted.eliminate
 
 (* ------------------------------------------------------------------------- *)
+(* Rename symbol names.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingRename :
+    thm -> ObjectRename.rename -> thm option * ObjectRename.rename
+
+(* ------------------------------------------------------------------------- *)
 (* Adding to a store.                                                        *)
 (* ------------------------------------------------------------------------- *)
 

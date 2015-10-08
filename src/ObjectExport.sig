@@ -76,6 +76,8 @@ val thmSymbols : export -> SymbolSet.set
 
 val proofSymbols : export -> SymbolSet.set
 
+val visibleSymbols : export -> SymbolSet.set
+
 (* ------------------------------------------------------------------------- *)
 (* Eliminate unwanted subterms.                                              *)
 (* ------------------------------------------------------------------------- *)
@@ -83,10 +85,10 @@ val proofSymbols : export -> SymbolSet.set
 val eliminateUnwanted : export -> export option
 
 (* ------------------------------------------------------------------------- *)
-(* Delete local symbol names.                                                *)
+(* Clear local symbol names.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val deleteLocalNames : export -> export option
+val clearLocalNames : export -> export option
 
 (* ------------------------------------------------------------------------- *)
 (* Convert to a given article version.                                       *)

@@ -16,9 +16,8 @@ val new : (Symbol.symbol -> Name.name option) -> rename
 
 val id : rename
 
-val sharingRenameObject :
-    Object.object -> rename -> Object.object option * rename
+val sharingRename : Object.object -> rename -> Object.object option * rename
 
-val renameObject : rename -> Object.object -> Object.object option
+val rename : rename -> Object.object -> Object.object option
 
 end

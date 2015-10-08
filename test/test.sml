@@ -410,6 +410,7 @@ fun compress system name =
           Article.toTextFile
             {article = article,
              version = ArticleVersion.writeDefault,
+             clearLocalNames = false,
              filename = outputFilename}
     in
       ()

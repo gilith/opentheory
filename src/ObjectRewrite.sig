@@ -17,9 +17,8 @@ val new :
 
 val id : rewrite
 
-val sharingRewriteObject :
-    Object.object -> rewrite -> Object.object option * rewrite
+val sharingRewrite : Object.object -> rewrite -> Object.object option * rewrite
 
-val rewriteObject : rewrite -> Object.object -> Object.object option
+val rewrite : rewrite -> Object.object -> Object.object option
 
 end

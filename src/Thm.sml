@@ -449,17 +449,6 @@ in
   open S;
 end;
 
-fun splitThm (th,(req,prov)) =
-    let
-      val Thm.Thm {axioms,sequent} = Thm.dest th
-
-      val req = SequentSet.union req axioms
-
-      val prov = SequentSet.add prov sequent
-    in
-      (req,prov)
-    end;
-
 val axioms =
     let
       fun add (th,acc) = SequentSet.union acc (Thm.axioms th)

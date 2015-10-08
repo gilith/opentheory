@@ -848,6 +848,8 @@ val upgradeTheoryInfo = ref false;
 
 val preserveTheoryInfo = ref false;
 
+val clearLocalNamesInfo = ref false;
+
 val showAssumptionsInfo = ref false;
 
 val showDerivationsInfo = ref false;
@@ -1040,6 +1042,9 @@ in
        {switches = ["--preserve-theory"], arguments = [],
         description = "do not optimize theory source",
         processor = beginOpt endOpt (fn _ => preserveTheoryInfo := true)},
+       {switches = ["--clear-local-names"], arguments = [],
+        description = "clear names of symbols local to the theory",
+        processor = beginOpt endOpt (fn _ => clearLocalNamesInfo := true)},
        {switches = ["--manual-install"], arguments = [],
         description = "do not auto-install packages",
         processor = beginOpt endOpt (fn _ => autoInstall := false)}];
@@ -2122,6 +2127,7 @@ local
           Article.toTextFile
             {article = art,
              version = version,
+             clearLocalNames = !clearLocalNamesInfo,
              filename = filename}
         end
       | AssumptionsInfo =>

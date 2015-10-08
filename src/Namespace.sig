@@ -12,6 +12,11 @@ sig
 
 type component = string
 
+(* The empty component *)
+
+val emptyComponent : component
+val isEmptyComponent : component -> bool
+
 (* A total ordering *)
 
 val compareComponent : component * component -> order

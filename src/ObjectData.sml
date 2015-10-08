@@ -595,7 +595,7 @@ fun sharingRewrite d rewr =
 (*OpenTheoryDebug
         val () =
             if TypeOp.isUndef t then ()
-            else raise Bug "ObjectData.sharingRewrite: defined type operator"
+            else raise Bug "ObjectData.sharingRewrite.TypeOp: defined"
 *)
       in
         (NONE,rewr)
@@ -613,7 +613,7 @@ fun sharingRewrite d rewr =
 (*OpenTheoryDebug
         val () =
             if Const.isUndef c then ()
-            else raise Bug "ObjectData.sharingRewrite: defined constant"
+            else raise Bug "ObjectData.sharingRewrite.Const: defined"
 *)
       in
         (NONE,rewr)
@@ -634,7 +634,20 @@ fun sharingRewrite d rewr =
       in
         (d',rewr)
       end
-    | Thm _ => raise Bug "ObjectData.sharingRewrite: theorem"
+    | Thm th =>
+      let
+        val Thm.Thm {sequent = seq, axioms} = Thm.dest th
+(*OpenTheoryDebug
+        val () =
+            if SequentSet.equal axioms (SequentSet.singleton seq) then ()
+            else raise Bug "ObjectData.sharingRewrite.Thm: not an axiom"
+*)
+        val (seq',rewr) = Sequent.sharingRewrite seq rewr
+
+        val d' = Option.map (Thm o Thm.axiom) seq'
+      in
+        (d',rewr)
+      end
     | List l =>
       let
         val (l',rewr) = TermRewrite.sharingRewriteList sharingRewrite l rewr

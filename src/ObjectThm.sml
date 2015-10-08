@@ -125,6 +125,12 @@ fun maps f th acc =
 val sharingEliminateUnwanted = maps ObjectUnwanted.sharingEliminate;
 
 (* ------------------------------------------------------------------------- *)
+(* Rename symbol names.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingRename = maps ObjectRename.sharingRename;
+
+(* ------------------------------------------------------------------------- *)
 (* Adding to a store.                                                        *)
 (* ------------------------------------------------------------------------- *)
 

@@ -122,7 +122,7 @@ local
       let
         val k = xsize xs
       in
-        if k = 1 then ()
+        if k = 1 orelse Name.isEmpty n then ()
         else
           let
             val msg =

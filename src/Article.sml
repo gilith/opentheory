@@ -205,7 +205,7 @@ fun fromTextFile {savable,import,interpretation,filename} =
     handle Error err => raise Error ("in Article.fromTextFile:\n" ^ err);
 *)
 
-fun toTextFile {article,version,filename} =
+fun toTextFile {article,version,clearLocalNames,filename} =
     let
       val Article {savable, thms, inference = _} = article
 
@@ -220,6 +220,13 @@ fun toTextFile {article,version,filename} =
           case ObjectExport.eliminateUnwanted exp of
             NONE => exp
           | SOME exp => exp
+
+      val exp =
+          if not clearLocalNames then exp
+          else
+            case ObjectExport.clearLocalNames exp of
+              NONE => exp
+            | SOME exp => exp
 
       val exp =
           case ObjectExport.setVersion version exp of
