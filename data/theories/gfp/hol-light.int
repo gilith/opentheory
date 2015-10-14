@@ -1,0 +1,27 @@
+###############################################################################
+# INTERPRETATIONS FOR A PARAMETRIC THEORY OF GF(p) FINITE FIELDS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Number
+
+# Number.GF(p)
+
+type "HOLLight.gfp" as "Number.GF(p).gfp"
+
+const "HOLLight.gfp_le" as "Number.GF(p).<="
+const "HOLLight.gfp_lt" as "Number.GF(p).<"
+const "HOLLight.gfp_neg" as "Number.GF(p).~"
+const "HOLLight.gfp_exp" as "Number.GF(p).^"
+const "HOLLight.gfp_mult" as "Number.GF(p).*"
+const "HOLLight.gfp_div" as "Number.GF(p)./"
+const "HOLLight.gfp_add" as "Number.GF(p).+"
+const "HOLLight.gfp_sub" as "Number.GF(p).-"
+const "HOLLight.gfp_div_gcd" as "Number.GF(p).divGcd"
+const "HOLLight.gfp_equiv" as "Number.GF(p).equivalent"
+const "HOLLight.gfp_exp_div" as "Number.GF(p).expDiv"
+const "HOLLight.num_to_gfp" as "Number.GF(p).fromNatural"
+const "HOLLight.gfp_inv" as "Number.GF(p).inv"
+const "HOLLight.oddprime" as "Number.GF(p).oddprime"
+const "HOLLight.random_gfp" as "Number.GF(p).random"
+const "HOLLight.gfp_to_num" as "Number.GF(p).toNatural"

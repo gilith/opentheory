@@ -1,0 +1,38 @@
+###############################################################################
+# INTERPRETATIONS FOR 16-BIT WORDS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Data
+
+# Data.Word16
+
+type "HOLLight.word16" as "Data.Word16.word16"
+
+const "HOLLight.word16_le" as "Data.Word16.<="
+const "HOLLight.word16_lt" as "Data.Word16.<"
+const "HOLLight.word16_neg" as "Data.Word16.~"
+const "HOLLight.word16_exp" as "Data.Word16.^"
+const "HOLLight.word16_mult" as "Data.Word16.*"
+const "HOLLight.word16_add" as "Data.Word16.+"
+const "HOLLight.word16_sub" as "Data.Word16.-"
+const "HOLLight.word16_and" as "Data.Word16.and"
+const "HOLLight.word16_bit" as "Data.Word16.bit"
+const "HOLLight.bytes_to_word16" as "Data.Word16.fromBytes"
+const "HOLLight.num_to_word16" as "Data.Word16.fromNatural"
+const "HOLLight.random_word16" as "Data.Word16.random"
+const "HOLLight.word16_size" as "Data.Word16.modulus"
+const "HOLLight.word16_not" as "Data.Word16.not"
+const "HOLLight.word16_or" as "Data.Word16.or"
+const "HOLLight.word16_shl" as "Data.Word16.shiftLeft"
+const "HOLLight.word16_shr" as "Data.Word16.shiftRight"
+const "HOLLight.word16_to_bytes" as "Data.Word16.toBytes"
+const "HOLLight.word16_to_num" as "Data.Word16.toNatural"
+const "HOLLight.word16_width" as "Data.Word16.width"
+
+# Data.Word16.Bits
+
+const "HOLLight.word16_bits_lte" as "Data.Word16.Bits.compare"
+const "HOLLight.word16_to_list" as "Data.Word16.Bits.fromWord"
+const "HOLLight.is_word16_list" as "Data.Word16.Bits.normal"
+const "HOLLight.list_to_word16" as "Data.Word16.Bits.toWord"

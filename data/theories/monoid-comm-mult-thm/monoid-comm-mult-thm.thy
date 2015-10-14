@@ -1,10 +1,10 @@
 name: monoid-comm-mult-thm
-version: 1.1
+version: 1.2
 description: Properties of commutative monoid multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2013-03-09
-requires: bool
+requires: base
 requires: monoid-mult-thm
 show: "Algebra.Monoid"
 show: "Data.Bool"

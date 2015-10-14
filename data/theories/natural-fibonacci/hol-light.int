@@ -1,0 +1,30 @@
+###############################################################################
+# INTERPRETATIONS FOR FIBONACCI NUMBERS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Data
+
+# Data.List
+
+# Data.List.Fibonacci
+
+const "HOLLight.random_fib_list" as "Data.List.Fibonacci.random"
+
+# Number
+
+# Number.Natural
+
+const "HOLLight.fibonacci" as "Number.Natural.fibonacci"
+
+# Number.Natural.Fibonacci
+
+const "HOLLight.fibonaccis" as "Number.Natural.Fibonacci.all"
+const "HOLLight.decode_fib" as "Number.Natural.Fibonacci.decode"
+const "HOLLight.decode_fib_dest" as "Number.Natural.Fibonacci.decode.dest"
+const "HOLLight.encode_fib" as "Number.Natural.Fibonacci.encode"
+const "HOLLight.encode_fib_find" as "Number.Natural.Fibonacci.encode.find"
+const "HOLLight.encode_fib_mk" as "Number.Natural.Fibonacci.encode.mk"
+const "HOLLight.random_fib" as "Number.Natural.Fibonacci.random"
+const "HOLLight.random_fib_dest" as "Number.Natural.Fibonacci.random.dest"
+const "HOLLight.zeckendorf" as "Number.Natural.Fibonacci.zeckendorf"

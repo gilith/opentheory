@@ -1,0 +1,15 @@
+###############################################################################
+# INTERPRETATIONS FOR A PARAMETRIC THEORY OF MONOIDS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Algebra
+
+# Algebra.Monoid
+
+type "HOLLight.monoid" as "Algebra.Monoid.monoid"
+
+const "HOLLight.monoid_add" as "Algebra.Monoid.+"
+const "HOLLight.monoid_mult" as "Algebra.Monoid.*"
+const "HOLLight.monoid_zero" as "Algebra.Monoid.0"
+const "HOLLight.monoid_mult_add" as "Algebra.Monoid.multAdd"

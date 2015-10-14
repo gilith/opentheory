@@ -1,5 +1,5 @@
 name: word12
-version: 1.114
+version: 1.115
 description: 12-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -13,9 +13,10 @@ show: "Data.Word12"
 show: "Data.Word12.Bits"
 show: "Number.Natural"
 show: "Probability.Random"
+hol-light-int-file: hol-light.int
 
 def {
-  package: word12-def-1.91
+  package: word12-def-1.92
 }
 
 bits {

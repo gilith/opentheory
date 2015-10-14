@@ -1,5 +1,5 @@
 name: stream
-version: 1.46
+version: 1.47
 description: Infinite stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -12,6 +12,7 @@ show: "Data.Stream"
 show: "Function"
 show: "Number.Natural"
 show: "Set"
+hol-light-int-file: hol-light.int
 haskell-category: List
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art

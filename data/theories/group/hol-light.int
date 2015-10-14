@@ -1,0 +1,23 @@
+###############################################################################
+# INTERPRETATIONS FOR A PARAMETRIC THEORY OF GROUPS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Algebra
+
+# Algebra.Group
+
+type "HOLLight.group" as "Algebra.Group.group"
+
+const "HOLLight.group_add" as "Algebra.Group.+"
+const "HOLLight.group_neg" as "Algebra.Group.~"
+const "HOLLight.group_mult" as "Algebra.Group.*"
+const "HOLLight.group_sub" as "Algebra.Group.-"
+const "HOLLight.group_zero" as "Algebra.Group.0"
+const "HOLLight.group_mult_add" as "Algebra.Group.multAdd"
+const "HOLLight.group_mult_sub" as "Algebra.Group.multSub"
+
+# Algebra.Group.ElGamal
+
+const "HOLLight.group_elgamal_decrypt" as "Algebra.Group.ElGamal.decrypt"
+const "HOLLight.group_elgamal_encrypt" as "Algebra.Group.ElGamal.encrypt"

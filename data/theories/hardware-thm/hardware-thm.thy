@@ -1,13 +1,11 @@
 name: hardware-thm
-version: 1.32
+version: 1.33
 description: Properties of the hardware model
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2015-02-20
-requires: bool
+requires: base
 requires: hardware-def
-requires: list
-requires: natural
 requires: natural-bits
 requires: stream
 show: "Data.Bool"

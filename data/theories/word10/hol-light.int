@@ -1,0 +1,36 @@
+###############################################################################
+# INTERPRETATIONS FOR 10-BIT WORDS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Data
+
+# Data.Word10
+
+type "HOLLight.word10" as "Data.Word10.word10"
+
+const "HOLLight.word10_le" as "Data.Word10.<="
+const "HOLLight.word10_lt" as "Data.Word10.<"
+const "HOLLight.word10_neg" as "Data.Word10.~"
+const "HOLLight.word10_exp" as "Data.Word10.^"
+const "HOLLight.word10_mult" as "Data.Word10.*"
+const "HOLLight.word10_add" as "Data.Word10.+"
+const "HOLLight.word10_sub" as "Data.Word10.-"
+const "HOLLight.word10_and" as "Data.Word10.and"
+const "HOLLight.word10_bit" as "Data.Word10.bit"
+const "HOLLight.num_to_word10" as "Data.Word10.fromNatural"
+const "HOLLight.random_word10" as "Data.Word10.random"
+const "HOLLight.word10_size" as "Data.Word10.modulus"
+const "HOLLight.word10_not" as "Data.Word10.not"
+const "HOLLight.word10_or" as "Data.Word10.or"
+const "HOLLight.word10_shl" as "Data.Word10.shiftLeft"
+const "HOLLight.word10_shr" as "Data.Word10.shiftRight"
+const "HOLLight.word10_to_num" as "Data.Word10.toNatural"
+const "HOLLight.word10_width" as "Data.Word10.width"
+
+# Data.Word10.Bits
+
+const "HOLLight.word10_bits_lte" as "Data.Word10.Bits.compare"
+const "HOLLight.word10_to_list" as "Data.Word10.Bits.fromWord"
+const "HOLLight.is_word10_list" as "Data.Word10.Bits.normal"
+const "HOLLight.list_to_word10" as "Data.Word10.Bits.toWord"

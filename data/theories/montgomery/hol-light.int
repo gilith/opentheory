@@ -1,0 +1,21 @@
+###############################################################################
+# INTERPRETATIONS FOR MONTGOMERY MULTIPLICATION
+# Joe Leslie-Hurd
+###############################################################################
+
+# Hardware
+
+# Hardware.Montgomery
+
+const "HOLLight.montgomery_double_exp" as "Hardware.Montgomery.doubleExp"
+const "HOLLight.montgomery_mult" as "Hardware.Montgomery.multiply"
+const "HOLLight.montgomery_mult_compress" as "Hardware.Montgomery.multiply.compress"
+const "HOLLight.montgomery_mult_reduce" as "Hardware.Montgomery.multiply.reduce"
+
+# Number
+
+# Number.Natural
+
+# Number.Natural.Montgomery
+
+const "HOLLight.montgomery_reduce" as "Number.Natural.Montgomery.reduce"

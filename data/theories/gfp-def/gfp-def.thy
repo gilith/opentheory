@@ -1,5 +1,5 @@
 name: gfp-def
-version: 1.71
+version: 1.73
 description: Definition of GF(p) finite fields
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -29,10 +29,10 @@ modular {
   interpret: const "Number.Modular.^" as "Number.GF(p).^"
   interpret: const "Number.Modular.~" as "Number.GF(p).~"
   interpret: const "Number.Modular.fromNatural" as "Number.GF(p).fromNatural"
-  interpret: const "Number.Modular.random" as "Number.GF(p).random"
   interpret: const "Number.Modular.modulus" as "Number.GF(p).oddprime"
+  interpret: const "Number.Modular.random" as "Number.GF(p).random"
   interpret: const "Number.Modular.toNatural" as "Number.GF(p).toNatural"
-  package: modular-1.88
+  package: modular-1.89
 }
 
 main {

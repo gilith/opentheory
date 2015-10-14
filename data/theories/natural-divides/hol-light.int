@@ -1,0 +1,14 @@
+###############################################################################
+# INTERPRETATIONS FOR THE DIVIDES RELATION ON NATURAL NUMBERS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Number
+
+# Number.Natural
+
+const "HOLLight.chinese" as "Number.Natural.chineseRemainder"
+const "HOLLight.divides" as "Number.Natural.divides"
+const "HOLLight.egcd" as "Number.Natural.egcd"
+const "HOLLight.gcd" as "Number.Natural.gcd"
+const "HOLLight.lcm" as "Number.Natural.lcm"

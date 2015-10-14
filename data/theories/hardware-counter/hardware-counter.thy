@@ -1,20 +1,15 @@
 name: hardware-counter
-version: 1.20
+version: 1.21
 description: Hardware counter devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: function
+requires: base
 requires: hardware-adder
 requires: hardware-bus
 requires: hardware-def
 requires: hardware-thm
 requires: hardware-wire
-requires: list
-requires: natural
 requires: natural-bits
-requires: pair
-requires: set
 requires: stream
 show: "Data.Bool"
 show: "Data.List"
@@ -26,12 +21,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: hardware-counter-def-1.10
+  package: hardware-counter-def-1.11
 }
 
 thm {
   import: def
-  package: hardware-counter-thm-1.20
+  package: hardware-counter-thm-1.21
 }
 
 main {

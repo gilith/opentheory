@@ -1,0 +1,36 @@
+###############################################################################
+# INTERPRETATIONS FOR BYTES
+# Joe Leslie-Hurd
+###############################################################################
+
+# Data
+
+# Data.Byte
+
+type "HOLLight.byte" as "Data.Byte.byte"
+
+const "HOLLight.byte_le" as "Data.Byte.<="
+const "HOLLight.byte_lt" as "Data.Byte.<"
+const "HOLLight.byte_neg" as "Data.Byte.~"
+const "HOLLight.byte_exp" as "Data.Byte.^"
+const "HOLLight.byte_mult" as "Data.Byte.*"
+const "HOLLight.byte_add" as "Data.Byte.+"
+const "HOLLight.byte_sub" as "Data.Byte.-"
+const "HOLLight.byte_and" as "Data.Byte.and"
+const "HOLLight.byte_bit" as "Data.Byte.bit"
+const "HOLLight.num_to_byte" as "Data.Byte.fromNatural"
+const "HOLLight.random_byte" as "Data.Byte.random"
+const "HOLLight.byte_size" as "Data.Byte.modulus"
+const "HOLLight.byte_not" as "Data.Byte.not"
+const "HOLLight.byte_or" as "Data.Byte.or"
+const "HOLLight.byte_shl" as "Data.Byte.shiftLeft"
+const "HOLLight.byte_shr" as "Data.Byte.shiftRight"
+const "HOLLight.byte_to_num" as "Data.Byte.toNatural"
+const "HOLLight.byte_width" as "Data.Byte.width"
+
+# Data.Byte.Bits
+
+const "HOLLight.byte_bits_lte" as "Data.Byte.Bits.compare"
+const "HOLLight.byte_to_list" as "Data.Byte.Bits.fromByte"
+const "HOLLight.is_byte_list" as "Data.Byte.Bits.normal"
+const "HOLLight.list_to_byte" as "Data.Byte.Bits.toByte"

@@ -1,15 +1,10 @@
 name: hardware
-version: 1.77
+version: 1.81
 description: Hardware devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: function
-requires: list
-requires: natural
+requires: base
 requires: natural-bits
-requires: pair
-requires: set
 requires: stream
 show: "Data.Bool"
 show: "Data.List"
@@ -19,32 +14,33 @@ show: "Function"
 show: "Hardware"
 show: "Number.Natural"
 show: "Set"
+hol-light-int-file: hol-light.int
 
 def {
-  package: hardware-def-1.20
+  package: hardware-def-1.21
 }
 
 thm {
   import: def
-  package: hardware-thm-1.32
+  package: hardware-thm-1.33
 }
 
 wire {
   import: thm
-  package: hardware-wire-1.22
+  package: hardware-wire-1.23
 }
 
 bus {
   import: thm
   import: wire
-  package: hardware-bus-1.45
+  package: hardware-bus-1.46
 }
 
 adder {
   import: thm
   import: wire
   import: bus
-  package: hardware-adder-1.17
+  package: hardware-adder-1.18
 }
 
 counter {
@@ -53,7 +49,7 @@ counter {
   import: wire
   import: bus
   import: adder
-  package: hardware-counter-1.20
+  package: hardware-counter-1.21
 }
 
 multiplier {
@@ -61,7 +57,7 @@ multiplier {
   import: bus
   import: counter
   import: adder
-  package: hardware-multiplier-1.16
+  package: hardware-multiplier-1.18
 }
 
 main {

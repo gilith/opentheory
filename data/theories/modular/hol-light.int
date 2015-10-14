@@ -1,0 +1,23 @@
+###############################################################################
+# INTERPRETATIONS FOR A PARAMETRIC THEORY OF MODULAR ARITHMETIC
+# Joe Leslie-Hurd
+###############################################################################
+
+# Number
+
+# Number.Modular
+
+type "HOLLight.modular" as "Number.Modular.modular"
+
+const "HOLLight.modular_le" as "Number.Modular.<="
+const "HOLLight.modular_lt" as "Number.Modular.<"
+const "HOLLight.modular_neg" as "Number.Modular.~"
+const "HOLLight.modular_exp" as "Number.Modular.^"
+const "HOLLight.modular_mult" as "Number.Modular.*"
+const "HOLLight.modular_add" as "Number.Modular.+"
+const "HOLLight.modular_sub" as "Number.Modular.-"
+const "HOLLight.modular_equiv" as "Number.Modular.equivalent"
+const "HOLLight.num_to_modular" as "Number.Modular.fromNatural"
+const "HOLLight.random_modular" as "Number.Modular.random"
+const "HOLLight.modulus" as "Number.Modular.modulus"
+const "HOLLight.modular_to_num" as "Number.Modular.toNatural"

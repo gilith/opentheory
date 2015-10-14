@@ -1,0 +1,19 @@
+###############################################################################
+# INTERPRETATIONS FOR THE MAP REDUCE 3x3 BIT MATRIX EXAMPLE
+# Joe Leslie-Hurd
+###############################################################################
+
+# Bit
+
+const "HOLLight.bit_add" as "Bit.+"
+const "HOLLight.bit_mult" as "Bit.*"
+
+# Bit3
+
+const "HOLLight.bit3_dot" as "Bit3.dot"
+
+# Bit3x3
+
+const "HOLLight.bit3x3_mult" as "Bit3x3.*"
+const "HOLLight.bit3x3_identity" as "Bit3x3.identity"
+const "HOLLight.bit3x3_product" as "Bit3x3.product"

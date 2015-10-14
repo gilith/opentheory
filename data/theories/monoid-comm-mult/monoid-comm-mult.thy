@@ -1,9 +1,9 @@
 name: monoid-comm-mult
-version: 1.4
+version: 1.5
 description: Commutative monoid multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
+requires: base
 requires: monoid-mult-add
 requires: monoid-mult-def
 requires: monoid-mult-thm
@@ -17,7 +17,7 @@ def {
 }
 
 thm {
-  package: monoid-comm-mult-thm-1.1
+  package: monoid-comm-mult-thm-1.2
 }
 
 add {

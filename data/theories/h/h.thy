@@ -1,5 +1,5 @@
 name: h
-version: 1.122
+version: 1.123
 description: Memory safety for the H interface
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -19,6 +19,7 @@ show: "Function"
 show: "Number.Natural"
 show: "Set"
 show: "System.H"
+hol-light-int-file: hol-light.int
 
 def {
   package: h-def-1.117

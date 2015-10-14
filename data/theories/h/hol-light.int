@@ -1,0 +1,285 @@
+###############################################################################
+# INTERPRETATIONS FOR MEMORY SAFETY FOR THE H INTERFACE
+# Joe Leslie-Hurd and Rebekah Leslie-Hurd
+###############################################################################
+
+# System
+
+# System.H
+
+type "HOLLight.action" as "System.H.action"
+type "HOLLight.domain" as "System.H.domain"
+type "HOLLight.page" as "System.H.page"
+type "HOLLight.output" as "System.H.output"
+type "HOLLight.state" as "System.H.state"
+type "HOLLight.view" as "System.H.view"
+type "HOLLight.region_length" as "System.H.regionLength"
+
+const "HOLLight.action" as "System.H.action"
+const "HOLLight.domain" as "System.H.domain"
+const "HOLLight.interferes" as "System.H.interferes"
+const "HOLLight.output" as "System.H.output"
+const "HOLLight.view" as "System.H.view"
+const "HOLLight.State" as "System.H.State"
+
+# System.H.Action
+
+const "HOLLight.AddKernelMappingH" as "System.H.Action.AddKernelMappingH"
+const "HOLLight.AddMappingH" as "System.H.Action.AddMappingH"
+const "HOLLight.AllocatePageDirectoryH" as "System.H.Action.AllocatePageDirectoryH"
+const "HOLLight.DeriveRegionH" as "System.H.Action.DeriveRegionH"
+const "HOLLight.ExecuteH" as "System.H.Action.ExecuteH"
+const "HOLLight.FreePageDirectoryH" as "System.H.Action.FreePageDirectoryH"
+const "HOLLight.RemoveMappingH" as "System.H.Action.RemoveMappingH"
+const "HOLLight.WriteE" as "System.H.Action.WriteEnvironment"
+const "HOLLight.WriteK" as "System.H.Action.WriteKernel"
+const "HOLLight.WriteU" as "System.H.Action.WriteUser"
+const "HOLLight.action_spec" as "System.H.Action.specification"
+const "HOLLight.add_kernel_mapping_h" as "System.H.Action.specificationAddKernelMappingH"
+const "HOLLight.add_mapping" as "System.H.Action.specificationAddMapping"
+const "HOLLight.add_mapping_h" as "System.H.Action.specificationAddMappingH"
+const "HOLLight.allocate_page_directory_h" as "System.H.Action.specificationAllocatePageDirectoryH"
+const "HOLLight.derive_region_h" as "System.H.Action.specificationDeriveRegionH"
+const "HOLLight.execute_h" as "System.H.Action.specificationExecuteH"
+const "HOLLight.free_page_directory_h" as "System.H.Action.specificationFreePageDirectoryH"
+const "HOLLight.remove_mapping_h" as "System.H.Action.specificationRemoveMappingH"
+const "HOLLight.write_e" as "System.H.Action.specificationWriteEnvironment"
+const "HOLLight.write_k" as "System.H.Action.specificationWriteKernel"
+const "HOLLight.write_u" as "System.H.Action.specificationWriteUser"
+
+# System.H.Domain
+
+const "HOLLight.EDomain" as "System.H.Domain.Environment"
+const "HOLLight.HDomain" as "System.H.Domain.H"
+const "HOLLight.KDomain" as "System.H.Domain.Kernel"
+const "HOLLight.UDomain" as "System.H.Domain.User"
+
+# System.H.Output
+
+const "HOLLight.dest_output" as "System.H.Output.dest"
+const "HOLLight.mk_output" as "System.H.Output.mk"
+
+# System.H.Page
+
+type "HOLLight.page_data" as "System.H.Page.data"
+type "HOLLight.page_offset" as "System.H.Page.offset"
+
+const "HOLLight.PageDirectory" as "System.H.Page.Directory"
+const "HOLLight.Environment" as "System.H.Page.Environment"
+const "HOLLight.Normal" as "System.H.Page.Normal"
+const "HOLLight.NotInstalled" as "System.H.Page.NotInstalled"
+const "HOLLight.PageTable" as "System.H.Page.Table"
+const "HOLLight.dest_page_directory" as "System.H.Page.destDirectory"
+const "HOLLight.dest_environment" as "System.H.Page.destEnvironment"
+const "HOLLight.dest_environment_or_normal" as "System.H.Page.destEnvironmentOrNormal"
+const "HOLLight.dest_normal" as "System.H.Page.destNormal"
+const "HOLLight.dest_page_table" as "System.H.Page.destTable"
+const "HOLLight.is_page_directory" as "System.H.Page.isDirectory"
+const "HOLLight.is_page_directory_or_table" as "System.H.Page.isDirectoryOrTable"
+const "HOLLight.is_environment" as "System.H.Page.isEnvironment"
+const "HOLLight.is_installed" as "System.H.Page.isInstalled"
+const "HOLLight.is_normal" as "System.H.Page.isNormal"
+const "HOLLight.is_not_installed" as "System.H.Page.isNotInstalled"
+const "HOLLight.is_page_table" as "System.H.Page.isTable"
+
+# System.H.Page.Data
+
+const "HOLLight.dest_page_data" as "System.H.Page.Data.dest"
+const "HOLLight.mk_page_data" as "System.H.Page.Data.mk"
+const "HOLLight.update_page_data" as "System.H.Page.Data.update"
+const "HOLLight.zero_page_data" as "System.H.Page.Data.zero"
+
+# System.H.Page.Directory
+
+type "HOLLight.page_directory_data" as "System.H.Page.Directory.data"
+type "HOLLight.page_directory_entry" as "System.H.Page.Directory.entry"
+
+# System.H.Page.Directory.Data
+
+const "HOLLight.dest_page_directory_data" as "System.H.Page.Directory.Data.dest"
+const "HOLLight.mk_page_directory_data" as "System.H.Page.Directory.Data.mk"
+
+# System.H.Page.Directory.Entry
+
+const "HOLLight.case_page_directory_entry" as "System.H.Page.Directory.Entry.case.Superpage.Table"
+const "HOLLight.Superpage" as "System.H.Page.Directory.Entry.Superpage"
+const "HOLLight.Table" as "System.H.Page.Directory.Entry.Table"
+
+# System.H.Page.Offset
+
+const "HOLLight.dest_page_offset" as "System.H.Page.Offset.dest"
+const "HOLLight.mk_page_offset" as "System.H.Page.Offset.mk"
+
+# System.H.Page.Table
+
+type "HOLLight.page_table_data" as "System.H.Page.Table.data"
+
+# System.H.Page.Table.Data
+
+const "HOLLight.dest_page_table_data" as "System.H.Page.Table.Data.dest"
+const "HOLLight.mk_page_table_data" as "System.H.Page.Table.Data.mk"
+
+# System.H.Physical
+
+type "HOLLight.physical_address" as "System.H.Physical.address"
+type "HOLLight.physical_page_address" as "System.H.Physical.page"
+type "HOLLight.physical_region" as "System.H.Physical.region"
+type "HOLLight.physical_superpage_address" as "System.H.Physical.superpage"
+
+# System.H.Physical.Address
+
+const "HOLLight.dest_physical_address" as "System.H.Physical.Address.dest"
+const "HOLLight.mk_physical_address" as "System.H.Physical.Address.mk"
+
+# System.H.Physical.Page
+
+const "HOLLight.physical_page_address_add" as "System.H.Physical.Page.add"
+const "HOLLight.dest_physical_page_address" as "System.H.Physical.Page.dest"
+const "HOLLight.mk_physical_page_address" as "System.H.Physical.Page.mk"
+const "HOLLight.physical_page_address_suc" as "System.H.Physical.Page.suc"
+
+# System.H.Physical.Region
+
+const "HOLLight.exists_physical_region" as "System.H.Physical.Region.exists"
+const "HOLLight.forall_physical_region" as "System.H.Physical.Region.forall"
+const "HOLLight.is_physical_subregion" as "System.H.Physical.Region.isSubregion"
+const "HOLLight.physical_region_length" as "System.H.Physical.Region.length"
+const "HOLLight.member_physical_region" as "System.H.Physical.Region.member"
+const "HOLLight.PhysicalRegion" as "System.H.Physical.Region.mk"
+const "HOLLight.physical_region_to_list" as "System.H.Physical.Region.pageList"
+const "HOLLight.physical_region_start" as "System.H.Physical.Region.start"
+
+# System.H.Physical.Superpage
+
+const "HOLLight.physical_superpage_address_add" as "System.H.Physical.Superpage.add"
+const "HOLLight.dest_physical_superpage_address" as "System.H.Physical.Superpage.dest"
+const "HOLLight.num_to_physical_superpage_address" as "System.H.Physical.Superpage.fromNatural"
+const "HOLLight.mk_physical_superpage_address" as "System.H.Physical.Superpage.mk"
+
+# System.H.RegionLength
+
+const "HOLLight.mk_region_length" as "System.H.RegionLength.fromNatural"
+const "HOLLight.dest_region_length" as "System.H.RegionLength.toNatural"
+
+# System.H.State
+
+type "HOLLight.region_state" as "System.H.State.regions"
+
+const "HOLLight.cr3" as "System.H.State.cr3"
+const "HOLLight.cr3_is_page_directory" as "System.H.State.cr3IsPageDirectory"
+const "HOLLight.environment_only_in_reference" as "System.H.State.environmentOnlyInReference"
+const "HOLLight.initial_regions_are_regions" as "System.H.State.initialRegionsAreRegions"
+const "HOLLight.is_environment_page" as "System.H.State.isEnvironmentPage"
+const "HOLLight.is_normal_page" as "System.H.State.isNormalPage"
+const "HOLLight.mapped_page" as "System.H.State.mappedPage"
+const "HOLLight.mapped_pages_are_available" as "System.H.State.mappedPagesAreAvailable"
+const "HOLLight.no_shared_page_tables" as "System.H.State.noSharedPageTables"
+const "HOLLight.status" as "System.H.State.page"
+const "HOLLight.page_directories_contain_reference" as "System.H.State.pageDirectoriesContainReference"
+const "HOLLight.reference" as "System.H.State.reference"
+const "HOLLight.reference_contains_environment" as "System.H.State.referenceContainsEnvironment"
+const "HOLLight.reference_is_page_directory" as "System.H.State.referenceIsPageDirectory"
+const "HOLLight.reference_maps_kernel_addresses" as "System.H.State.referenceMapsKernelAddresses"
+const "HOLLight.regions" as "System.H.State.regions"
+const "HOLLight.regions_are_not_environment" as "System.H.State.regionsAreNotEnvironment"
+const "HOLLight.table_mapped_in_directory" as "System.H.State.tableMappedInDirectory"
+const "HOLLight.table_pointers_are_page_tables" as "System.H.State.tablePointersArePageTables"
+const "HOLLight.translate_page" as "System.H.State.translatePage"
+const "HOLLight.translation" as "System.H.State.translation"
+const "HOLLight.unmapped_normal_page" as "System.H.State.unmappedNormalPage"
+const "HOLLight.unmapped_page" as "System.H.State.unmappedPage"
+const "HOLLight.wellformed" as "System.H.State.wellformed"
+const "HOLLight.RegionState" as "System.H.State.Regions"
+
+# System.H.State.Regions
+
+const "HOLLight.all_regions" as "System.H.State.Regions.all"
+const "HOLLight.initial_regions" as "System.H.State.Regions.initial"
+
+# System.H.Superpage
+
+type "HOLLight.superpage_offset" as "System.H.Superpage.offset"
+
+# System.H.Superpage.Offset
+
+const "HOLLight.superpage_offset_add" as "System.H.Superpage.Offset.add"
+const "HOLLight.dest_superpage_offset" as "System.H.Superpage.Offset.dest"
+const "HOLLight.num_to_superpage_offset" as "System.H.Superpage.Offset.fromNatural"
+const "HOLLight.mk_superpage_offset" as "System.H.Superpage.Offset.mk"
+
+# System.H.View
+
+type "HOLLight.observable_pages" as "System.H.View.observablePages"
+
+const "HOLLight.current_page_directory_h" as "System.H.View.currentPageDirectoryH"
+const "HOLLight.view_equiv" as "System.H.View.equivalent"
+const "HOLLight.mk_current_page_directory_h" as "System.H.View.mkCurrentPageDirectoryH"
+const "HOLLight.mk_observable_pages_e" as "System.H.View.mkObservablePagesEnvironment"
+const "HOLLight.mk_observable_pages_k" as "System.H.View.mkObservablePagesKernel"
+const "HOLLight.mk_observable_pages_u" as "System.H.View.mkObservablePagesUser"
+const "HOLLight.mk_pages_h" as "System.H.View.mkPagesH"
+const "HOLLight.mk_reference_page_directory_h" as "System.H.View.mkReferencePageDirectoryH"
+const "HOLLight.mk_region_handles_h" as "System.H.View.mkRegionHandlesH"
+const "HOLLight.mk_region_handles_k" as "System.H.View.mkRegionHandlesKernel"
+const "HOLLight.observable_pages_e" as "System.H.View.observablePagesEnvironment"
+const "HOLLight.observable_pages_k" as "System.H.View.observablePagesKernel"
+const "HOLLight.observable_pages_u" as "System.H.View.observablePagesUser"
+const "HOLLight.pages_h" as "System.H.View.pagesH"
+const "HOLLight.reference_page_directory_h" as "System.H.View.referencePageDirectoryH"
+const "HOLLight.region_handles_h" as "System.H.View.regionHandlesH"
+const "HOLLight.region_handles_k" as "System.H.View.regionHandlesKernel"
+const "HOLLight.EView" as "System.H.View.Environment"
+const "HOLLight.HView" as "System.H.View.H"
+const "HOLLight.KView" as "System.H.View.Kernel"
+const "HOLLight.UView" as "System.H.View.User"
+
+# System.H.View.ObservablePages
+
+const "HOLLight.dest_observable_pages" as "System.H.View.ObservablePages.dest"
+const "HOLLight.translate_to_observable_pages" as "System.H.View.ObservablePages.fromTranslate"
+const "HOLLight.mk_observable_pages" as "System.H.View.ObservablePages.mk"
+
+# System.H.Virtual
+
+type "HOLLight.virtual_address" as "System.H.Virtual.address"
+type "HOLLight.virtual_page_address" as "System.H.Virtual.page"
+type "HOLLight.virtual_region" as "System.H.Virtual.region"
+type "HOLLight.virtual_superpage_address" as "System.H.Virtual.superpage"
+
+# System.H.Virtual.Address
+
+const "HOLLight.dest_virtual_address" as "System.H.Virtual.Address.dest"
+const "HOLLight.is_kernel_address" as "System.H.Virtual.Address.isKernel"
+const "HOLLight.is_user_address" as "System.H.Virtual.Address.isUser"
+const "HOLLight.mk_virtual_address" as "System.H.Virtual.Address.mk"
+
+# System.H.Virtual.Page
+
+const "HOLLight.virtual_page_address_add" as "System.H.Virtual.Page.add"
+const "HOLLight.dest_virtual_page_address" as "System.H.Virtual.Page.dest"
+const "HOLLight.is_kernel_page_address" as "System.H.Virtual.Page.isKernel"
+const "HOLLight.is_user_page_address" as "System.H.Virtual.Page.isUser"
+const "HOLLight.mk_virtual_page_address" as "System.H.Virtual.Page.mk"
+const "HOLLight.virtual_page_address_suc" as "System.H.Virtual.Page.suc"
+
+# System.H.Virtual.Region
+
+const "HOLLight.exists_virtual_region" as "System.H.Virtual.Region.exists"
+const "HOLLight.forall_virtual_region" as "System.H.Virtual.Region.forall"
+const "HOLLight.is_kernel_region" as "System.H.Virtual.Region.isKernel"
+const "HOLLight.is_virtual_subregion" as "System.H.Virtual.Region.isSubregion"
+const "HOLLight.is_user_region" as "System.H.Virtual.Region.isUser"
+const "HOLLight.virtual_region_length" as "System.H.Virtual.Region.length"
+const "HOLLight.member_virtual_region" as "System.H.Virtual.Region.member"
+const "HOLLight.VirtualRegion" as "System.H.Virtual.Region.mk"
+const "HOLLight.virtual_region_to_list" as "System.H.Virtual.Region.pageList"
+const "HOLLight.virtual_region_start" as "System.H.Virtual.Region.start"
+
+# System.H.Virtual.Superpage
+
+const "HOLLight.virtual_superpage_address_add" as "System.H.Virtual.Superpage.add"
+const "HOLLight.dest_virtual_superpage_address" as "System.H.Virtual.Superpage.dest"
+const "HOLLight.num_to_virtual_superpage_address" as "System.H.Virtual.Superpage.fromNatural"
+const "HOLLight.is_kernel_superpage_address" as "System.H.Virtual.Superpage.isKernel"
+const "HOLLight.is_user_superpage_address" as "System.H.Virtual.Superpage.isUser"
+const "HOLLight.mk_virtual_superpage_address" as "System.H.Virtual.Superpage.mk"

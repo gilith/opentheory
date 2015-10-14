@@ -1,5 +1,5 @@
 name: group
-version: 1.9
+version: 1.10
 description: Parametric theory of groups
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,6 +15,7 @@ show: "Data.Bool"
 show: "Data.List"
 show: "Data.Pair"
 show: "Number.Natural"
+hol-light-int-file: hol-light.int
 
 def {
   package: group-def-1.10

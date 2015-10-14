@@ -1,0 +1,36 @@
+###############################################################################
+# INTERPRETATIONS FOR A PARAMETRIC THEORY OF WORDS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Data
+
+# Data.Word
+
+type "HOLLight.word" as "Data.Word.word"
+
+const "HOLLight.word_le" as "Data.Word.<="
+const "HOLLight.word_lt" as "Data.Word.<"
+const "HOLLight.word_neg" as "Data.Word.~"
+const "HOLLight.word_exp" as "Data.Word.^"
+const "HOLLight.word_mult" as "Data.Word.*"
+const "HOLLight.word_add" as "Data.Word.+"
+const "HOLLight.word_sub" as "Data.Word.-"
+const "HOLLight.word_and" as "Data.Word.and"
+const "HOLLight.word_bit" as "Data.Word.bit"
+const "HOLLight.num_to_word" as "Data.Word.fromNatural"
+const "HOLLight.random_word" as "Data.Word.random"
+const "HOLLight.word_size" as "Data.Word.modulus"
+const "HOLLight.word_not" as "Data.Word.not"
+const "HOLLight.word_or" as "Data.Word.or"
+const "HOLLight.word_shl" as "Data.Word.shiftLeft"
+const "HOLLight.word_shr" as "Data.Word.shiftRight"
+const "HOLLight.word_to_num" as "Data.Word.toNatural"
+const "HOLLight.word_width" as "Data.Word.width"
+
+# Data.Word.Bits
+
+const "HOLLight.word_bits_lte" as "Data.Word.Bits.compare"
+const "HOLLight.word_to_list" as "Data.Word.Bits.fromWord"
+const "HOLLight.is_word_list" as "Data.Word.Bits.normal"
+const "HOLLight.list_to_word" as "Data.Word.Bits.toWord"

@@ -1,14 +1,12 @@
 name: montgomery-hardware
-version: 1.5
+version: 1.7
 description: Hardware Montgomery multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
+requires: base
 requires: hardware
 requires: montgomery-thm
-requires: natural
 requires: natural-bits
-requires: set
 show: "Data.Bool"
 show: "Data.List"
 show: "Hardware"
@@ -16,12 +14,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: montgomery-hardware-def-1.4
+  package: montgomery-hardware-def-1.5
 }
 
 thm {
   import: def
-  package: montgomery-hardware-thm-1.5
+  package: montgomery-hardware-thm-1.7
 }
 
 main {

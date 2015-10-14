@@ -1,0 +1,36 @@
+###############################################################################
+# INTERPRETATIONS FOR 12-BIT WORDS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Data
+
+# Data.Word12
+
+type "HOLLight.word12" as "Data.Word12.word12"
+
+const "HOLLight.word12_le" as "Data.Word12.<="
+const "HOLLight.word12_lt" as "Data.Word12.<"
+const "HOLLight.word12_neg" as "Data.Word12.~"
+const "HOLLight.word12_exp" as "Data.Word12.^"
+const "HOLLight.word12_mult" as "Data.Word12.*"
+const "HOLLight.word12_add" as "Data.Word12.+"
+const "HOLLight.word12_sub" as "Data.Word12.-"
+const "HOLLight.word12_and" as "Data.Word12.and"
+const "HOLLight.word12_bit" as "Data.Word12.bit"
+const "HOLLight.num_to_word12" as "Data.Word12.fromNatural"
+const "HOLLight.random_word12" as "Data.Word12.random"
+const "HOLLight.word12_size" as "Data.Word12.modulus"
+const "HOLLight.word12_not" as "Data.Word12.not"
+const "HOLLight.word12_or" as "Data.Word12.or"
+const "HOLLight.word12_shl" as "Data.Word12.shiftLeft"
+const "HOLLight.word12_shr" as "Data.Word12.shiftRight"
+const "HOLLight.word12_to_num" as "Data.Word12.toNatural"
+const "HOLLight.word12_width" as "Data.Word12.width"
+
+# Data.Word12.Bits
+
+const "HOLLight.word12_bits_lte" as "Data.Word12.Bits.compare"
+const "HOLLight.word12_to_list" as "Data.Word12.Bits.fromWord"
+const "HOLLight.is_word12_list" as "Data.Word12.Bits.normal"
+const "HOLLight.list_to_word12" as "Data.Word12.Bits.toWord"

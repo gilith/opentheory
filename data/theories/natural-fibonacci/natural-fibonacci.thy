@@ -1,5 +1,5 @@
 name: natural-fibonacci
-version: 1.69
+version: 1.70
 description: Fibonacci numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,6 +15,7 @@ show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
 show: "Probability.Random"
 show: "Relation"
+hol-light-int-file: hol-light.int
 haskell-name: opentheory-fibonacci
 haskell-category: Number Theory
 haskell-int-file: haskell.int

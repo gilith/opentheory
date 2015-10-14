@@ -1,0 +1,35 @@
+###############################################################################
+# INTERPRETATIONS FOR PROBABILITY
+# Joe Leslie-Hurd
+###############################################################################
+
+# Data
+
+# Data.List
+
+const "HOLLight.random_vector" as "Data.List.random"
+
+# Data.List.Geometric
+
+const "HOLLight.random_geometric_list" as "Data.List.Geometric.random"
+
+# Number
+
+# Number.Natural
+
+# Number.Natural.Geometric
+
+const "HOLLight.random_geometric" as "Number.Natural.Geometric.random"
+const "HOLLight.random_geometric_loop" as "Number.Natural.Geometric.random.loop"
+
+# Probability
+
+# Probability.Random
+
+type "HOLLight.random" as "Probability.Random.random"
+
+const "HOLLight.random_bit" as "Probability.Random.bit"
+const "HOLLight.random_bits" as "Probability.Random.bits"
+const "HOLLight.mk_random" as "Probability.Random.fromStream"
+const "HOLLight.split_random" as "Probability.Random.split"
+const "HOLLight.dest_random" as "Probability.Random.toStream"

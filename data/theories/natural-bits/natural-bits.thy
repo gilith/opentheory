@@ -1,5 +1,5 @@
 name: natural-bits
-version: 1.66
+version: 1.67
 description: Natural number to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -12,6 +12,7 @@ show: "Data.Pair"
 show: "Function"
 show: "Number.Natural"
 show: "Probability.Random"
+hol-light-int-file: hol-light.int
 haskell-name: opentheory-bits
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
