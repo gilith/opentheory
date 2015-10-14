@@ -176,6 +176,37 @@ while (my $thy = <THEORIES>) {
       print STDOUT "imported $base haskell-$kind\n";
     }
   }
+  elsif ($thy =~ m{^([[:alnum:]-]+)[.]int$}) {
+    my $base = $1;
+    my $sint = "$source/$thy";
+    my $tdir = "$target/$base";
+    my $tthy = "$tdir/$base.thy";
+    my $tint = "$tdir/hol-light.int";
+
+    [ -d $tdir ] or
+      die "$program: directory $tdir doesn't exist: $!\n";
+
+    if (defined( -e $tint )) {
+      my $replace = !same_file_contents($tint,$sint);
+
+      if ($replace) {
+        bump_theory_version ($base, $tthy);
+
+        (system("cp $sint $tint") == 0) or
+          die "$program: couldn't copy $sint to $tint: $!\n";
+
+        print STDOUT "re-imported $base interpretation\n";
+      }
+    }
+    else {
+      bump_theory_version ($base, $tthy);
+
+      (system("cp $sint $tint") == 0) or
+        die "$program: couldn't copy $sint to $tint: $!\n";
+
+      print STDOUT "imported $base interpretation\n";
+    }
+  }
   elsif ($thy =~ m{^([[:alnum:]-]+)[.]thy$}) {
     my $base = $1;
     my $tdir = "$target/$base";
