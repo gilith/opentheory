@@ -264,7 +264,7 @@ capture-theories:
 
 .PHONY: import-theories
 import-theories: $(OPENTHEORY)
-	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles
+	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/export
 
 .PHONY: install-theories
 install-theories: $(OPENTHEORY)
@@ -284,7 +284,7 @@ theories:
 .PHONY: tiny-theories
 tiny-theories:
 	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory tiny-theories
-	cp $(HOL_LIGHT_DIR)/opentheory/articles/*.art $(TEST_ARTICLE_DIR)/hol-light
+	cp $(HOL_LIGHT_DIR)/opentheory/export/*.art $(TEST_ARTICLE_DIR)/hol-light
 	$(MAKE) clean
 	$(MAKE) mlton
 	cp $(TEST_ARTICLE_DIR)/bool-true-def.art $(TEST_THEORY_DIR)/bool-true-def/bool-true-def.art
