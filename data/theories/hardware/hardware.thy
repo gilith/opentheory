@@ -1,5 +1,5 @@
 name: hardware
-version: 1.81
+version: 1.82
 description: Hardware devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,6 +15,7 @@ show: "Hardware"
 show: "Number.Natural"
 show: "Set"
 hol-light-int-file: hol-light.int
+hol-light-thm-file: hol-light.art
 
 def {
   package: hardware-def-1.21

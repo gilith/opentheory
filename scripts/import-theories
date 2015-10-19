@@ -195,7 +195,7 @@ while (my $thy = <THEORIES>) {
         (system("cp $sint $tint") == 0) or
           die "$program: couldn't copy $sint to $tint: $!\n";
 
-        print STDOUT "re-imported $base interpretation\n";
+        print STDOUT "re-imported $base hol-light-int\n";
       }
     }
     else {
@@ -204,7 +204,45 @@ while (my $thy = <THEORIES>) {
       (system("cp $sint $tint") == 0) or
         die "$program: couldn't copy $sint to $tint: $!\n";
 
-      print STDOUT "imported $base interpretation\n";
+      print STDOUT "imported $base hol-light-int\n";
+    }
+  }
+  elsif ($thy =~ m{^([[:alnum:]-]+)-hol-light-thm[.]thy$}) {
+    my $base = $1;
+    my $tdir = "$target/$base";
+    my $tthy = "$tdir/$base.thy";
+
+    my $tart = "$tdir/hol-light.art";
+    my $tartnew = "$tart.importing";
+
+    [ -d $tdir ] or
+      die "$program: directory $tdir doesn't exist: $!\n";
+
+    import_article ($base, $thy, $tartnew);
+
+    if (defined( -e $tart )) {
+      my $replace = !same_file_contents($tartnew,$tart);
+
+      if ($replace) {
+        bump_theory_version ($base, $tthy);
+
+        rename($tartnew,$tart) or
+          die "$program: couldn't rename $tartnew to $tart: $!\n";
+
+        print STDOUT "re-imported $base hol-light-thm\n";
+      }
+      else {
+        unlink $tartnew or
+          die "$program: couldn't remove $tartnew: $!\n";
+      }
+    }
+    else {
+      bump_theory_version ($base, $tthy);
+
+      rename($tartnew,$tart) or
+        die "$program: couldn't rename $tartnew to $tart: $!\n";
+
+      print STDOUT "imported $base hol-light-thm\n";
     }
   }
   elsif ($thy =~ m{^([[:alnum:]-]+)[.]thy$}) {

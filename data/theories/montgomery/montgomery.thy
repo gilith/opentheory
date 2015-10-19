@@ -1,9 +1,9 @@
 name: montgomery
-version: 1.28
+version: 1.29
 description: Montgomery multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2015-10-13
+provenance: HOL Light theory extracted on 2015-10-18
 requires: base
 requires: hardware
 requires: natural-bits
@@ -14,6 +14,7 @@ show: "Hardware"
 show: "Number.Natural"
 show: "Set"
 hol-light-int-file: hol-light.int
+hol-light-thm-file: hol-light.art
 
 def {
   package: montgomery-def-1.10

@@ -1,5 +1,5 @@
 name: opentheory-fibonacci
-version: 1.69
+version: 1.72
 category: Number Theory
 synopsis: Fibonacci numbers
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Fibonacci numbers - this package was automatically generated from the
-  OpenTheory package natural-fibonacci-1.69
+  OpenTheory package natural-fibonacci-1.72
 
 library
   build-depends:
@@ -18,7 +18,7 @@ library
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.6 && < 2.0,
     opentheory >= 1.195 && < 1.201,
-    opentheory-stream >= 1.46 && < 1.47
+    opentheory-stream >= 1.46 && < 1.50
   hs-source-dirs: src
   ghc-options: -Wall
   exposed-modules:
@@ -31,7 +31,7 @@ test-suite opentheory-fibonacci-test
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.6 && < 2.0,
     opentheory >= 1.195 && < 1.201,
-    opentheory-stream >= 1.46 && < 1.47
+    opentheory-stream >= 1.46 && < 1.50
   hs-source-dirs: src
   ghc-options: -Wall
   main-is: Test.hs

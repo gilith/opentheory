@@ -1,5 +1,5 @@
 name: word-def
-version: 1.76
+version: 1.77
 description: Definition of word operations
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -32,7 +32,7 @@ modular {
   interpret: const "Number.Modular.modulus" as "Data.Word.modulus"
   interpret: const "Number.Modular.random" as "Data.Word.random"
   interpret: const "Number.Modular.toNatural" as "Data.Word.toNatural"
-  package: modular-1.89
+  package: modular-1.90
 }
 
 main {

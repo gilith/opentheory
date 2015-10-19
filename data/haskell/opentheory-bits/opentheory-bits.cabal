@@ -1,5 +1,5 @@
 name: opentheory-bits
-version: 1.66
+version: 1.69
 category: Formal Methods
 synopsis: Natural number to bit-list conversions
 license: MIT
@@ -11,7 +11,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 homepage: http://opentheory.gilith.com/?pkg=natural-bits
 description:
   Natural number to bit-list conversions - this package was automatically
-  generated from the OpenTheory package natural-bits-1.66
+  generated from the OpenTheory package natural-bits-1.69
 
 library
   build-depends:
@@ -19,7 +19,7 @@ library
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.6 && < 2.0,
     opentheory >= 1.195 && < 1.201,
-    opentheory-probability >= 1.46 && < 1.50
+    opentheory-probability >= 1.46 && < 1.53
   hs-source-dirs: src
   ghc-options: -Wall
   exposed-modules:

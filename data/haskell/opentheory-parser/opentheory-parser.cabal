@@ -1,5 +1,5 @@
 name: opentheory-parser
-version: 1.158
+version: 1.160
 category: Parsing
 synopsis: Stream parsers
 license: MIT
@@ -11,7 +11,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 homepage: http://opentheory.gilith.com/?pkg=parser
 description:
   Stream parsers - this package was automatically generated from the
-  OpenTheory package parser-1.158
+  OpenTheory package parser-1.160
 
 library
   build-depends:

@@ -1,5 +1,5 @@
 name: natural-divides
-version: 1.64
+version: 1.66
 description: The divides relation on natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,6 +10,7 @@ show: "Data.Pair"
 show: "Number.Natural"
 show: "Relation"
 hol-light-int-file: hol-light.int
+hol-light-thm-file: hol-light.art
 haskell-name: opentheory-divides
 haskell-category: Number Theory
 haskell-int-file: haskell.int

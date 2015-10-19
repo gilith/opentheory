@@ -228,7 +228,16 @@ while (my $thy = <THEORIES>) {
     chomp $info;
 
     if ($looking_for_latest != 0) {
-      die "unsupported";
+      if ($looking_for_latest == 1) {
+        $info = "Versions available: " . $info;
+      }
+      elsif ($looking_for_latest == 2) {
+        $info = "Versions installed: " . $info;
+      }
+      else {
+        die;
+      }
+      $looking_for_latest = 0;
     }
 
     if ($info =~ /^[[:space:]]*Versions available:[[:space:]]+(.*)$/) {

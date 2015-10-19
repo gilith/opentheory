@@ -1,5 +1,5 @@
 name: byte
-version: 1.127
+version: 1.128
 description: Bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ haskell-equality-type: "Data.Byte.byte"
 haskell-arbitrary-type: "Data.Byte.byte"
 
 def {
-  package: byte-def-1.92
+  package: byte-def-1.93
 }
 
 bits {

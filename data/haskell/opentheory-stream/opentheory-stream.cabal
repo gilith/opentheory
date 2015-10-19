@@ -1,5 +1,5 @@
 name: opentheory-stream
-version: 1.46
+version: 1.49
 category: List
 synopsis: Infinite stream types
 license: MIT
@@ -11,7 +11,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 homepage: http://opentheory.gilith.com/?pkg=stream
 description:
   Infinite stream types - this package was automatically generated from the
-  OpenTheory package stream-1.46
+  OpenTheory package stream-1.49
 
 library
   build-depends:

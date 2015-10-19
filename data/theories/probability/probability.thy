@@ -1,5 +1,5 @@
 name: probability
-version: 1.50
+version: 1.52
 description: Probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,6 +14,7 @@ show: "Function"
 show: "Number.Natural"
 show: "Probability.Random"
 hol-light-int-file: hol-light.int
+hol-light-thm-file: hol-light.art
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 haskell-arbitrary-type: "Probability.Random.random"

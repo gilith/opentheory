@@ -1,5 +1,5 @@
 name: parser
-version: 1.159
+version: 1.160
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,6 +16,7 @@ show: "Parser"
 show: "Parser.Stream"
 show: "Relation"
 hol-light-int-file: hol-light.int
+hol-light-thm-file: hol-light.art
 haskell-category: Parsing
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
