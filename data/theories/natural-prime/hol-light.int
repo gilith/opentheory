@@ -7,25 +7,25 @@
 
 # Number.Natural
 
-const "HOLLight.prime" as "Number.Natural.prime"
+const "Number.Natural.prime" as "HOLLight.prime"
 
 # Number.Natural.Prime
 
-const "HOLLight.primes" as "Number.Natural.Prime.all"
-const "HOLLight.primes_below" as "Number.Natural.Prime.below"
+const "Number.Natural.Prime.all" as "HOLLight.primes"
+const "Number.Natural.Prime.below" as "HOLLight.primes_below"
 
 # Number.Natural.Prime.Sieve
 
-type "HOLLight.sieve" as "Number.Natural.Prime.Sieve.sieve"
+type "Number.Natural.Prime.Sieve.sieve" as "HOLLight.sieve"
 
-const "HOLLight.dest_sieve" as "Number.Natural.Prime.Sieve.dest"
-const "HOLLight.inc_sieve" as "Number.Natural.Prime.Sieve.increment"
-const "HOLLight.inc_counters_sieve" as "Number.Natural.Prime.Sieve.increment.inc"
-const "HOLLight.init_sieve" as "Number.Natural.Prime.Sieve.initial"
-const "HOLLight.is_sieve" as "Number.Natural.Prime.Sieve.invariant"
-const "HOLLight.is_counters_sieve" as "Number.Natural.Prime.Sieve.invariant.inv"
-const "HOLLight.max_sieve" as "Number.Natural.Prime.Sieve.max"
-const "HOLLight.mk_sieve" as "Number.Natural.Prime.Sieve.mk"
-const "HOLLight.next_sieve" as "Number.Natural.Prime.Sieve.next"
-const "HOLLight.primes_sieve" as "Number.Natural.Prime.Sieve.primes"
+const "Number.Natural.Prime.Sieve.dest" as "HOLLight.dest_sieve"
+const "Number.Natural.Prime.Sieve.increment" as "HOLLight.inc_sieve"
+const "Number.Natural.Prime.Sieve.increment.inc" as "HOLLight.inc_counters_sieve"
+const "Number.Natural.Prime.Sieve.initial" as "HOLLight.init_sieve"
+const "Number.Natural.Prime.Sieve.invariant" as "HOLLight.is_sieve"
+const "Number.Natural.Prime.Sieve.invariant.inv" as "HOLLight.is_counters_sieve"
+const "Number.Natural.Prime.Sieve.max" as "HOLLight.max_sieve"
+const "Number.Natural.Prime.Sieve.mk" as "HOLLight.mk_sieve"
+const "Number.Natural.Prime.Sieve.next" as "HOLLight.next_sieve"
+const "Number.Natural.Prime.Sieve.primes" as "HOLLight.primes_sieve"
 

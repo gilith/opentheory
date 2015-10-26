@@ -9,22 +9,22 @@
 
 # Data.List.Fibonacci
 
-const "HOLLight.random_fib_list" as "Data.List.Fibonacci.random"
+const "Data.List.Fibonacci.random" as "HOLLight.random_fib_list"
 
 # Number
 
 # Number.Natural
 
-const "HOLLight.fibonacci" as "Number.Natural.fibonacci"
+const "Number.Natural.fibonacci" as "HOLLight.fibonacci"
 
 # Number.Natural.Fibonacci
 
-const "HOLLight.fibonaccis" as "Number.Natural.Fibonacci.all"
-const "HOLLight.decode_fib" as "Number.Natural.Fibonacci.decode"
-const "HOLLight.decode_fib_dest" as "Number.Natural.Fibonacci.decode.dest"
-const "HOLLight.encode_fib" as "Number.Natural.Fibonacci.encode"
-const "HOLLight.encode_fib_find" as "Number.Natural.Fibonacci.encode.find"
-const "HOLLight.encode_fib_mk" as "Number.Natural.Fibonacci.encode.mk"
-const "HOLLight.random_fib" as "Number.Natural.Fibonacci.random"
-const "HOLLight.random_fib_dest" as "Number.Natural.Fibonacci.random.dest"
-const "HOLLight.zeckendorf" as "Number.Natural.Fibonacci.zeckendorf"
+const "Number.Natural.Fibonacci.all" as "HOLLight.fibonaccis"
+const "Number.Natural.Fibonacci.decode" as "HOLLight.decode_fib"
+const "Number.Natural.Fibonacci.decode.dest" as "HOLLight.decode_fib_dest"
+const "Number.Natural.Fibonacci.encode" as "HOLLight.encode_fib"
+const "Number.Natural.Fibonacci.encode.find" as "HOLLight.encode_fib_find"
+const "Number.Natural.Fibonacci.encode.mk" as "HOLLight.encode_fib_mk"
+const "Number.Natural.Fibonacci.random" as "HOLLight.random_fib"
+const "Number.Natural.Fibonacci.random.dest" as "HOLLight.random_fib_dest"
+const "Number.Natural.Fibonacci.zeckendorf" as "HOLLight.zeckendorf"

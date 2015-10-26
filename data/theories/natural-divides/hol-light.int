@@ -7,8 +7,8 @@
 
 # Number.Natural
 
-const "HOLLight.chinese" as "Number.Natural.chineseRemainder"
-const "HOLLight.divides" as "Number.Natural.divides"
-const "HOLLight.egcd" as "Number.Natural.egcd"
-const "HOLLight.gcd" as "Number.Natural.gcd"
-const "HOLLight.lcm" as "Number.Natural.lcm"
+const "Number.Natural.chineseRemainder" as "HOLLight.chinese"
+const "Number.Natural.divides" as "HOLLight.divides"
+const "Number.Natural.egcd" as "HOLLight.egcd"
+const "Number.Natural.gcd" as "HOLLight.gcd"
+const "Number.Natural.lcm" as "HOLLight.lcm"

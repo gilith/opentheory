@@ -1,5 +1,5 @@
 name: modular
-version: 1.90
+version: 1.91
 description: Parametric theory of modular arithmetic
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

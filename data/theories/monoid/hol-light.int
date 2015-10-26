@@ -7,9 +7,9 @@
 
 # Algebra.Monoid
 
-type "HOLLight.monoid" as "Algebra.Monoid.monoid"
+type "Algebra.Monoid.monoid" as "HOLLight.monoid"
 
-const "HOLLight.monoid_add" as "Algebra.Monoid.+"
-const "HOLLight.monoid_mult" as "Algebra.Monoid.*"
-const "HOLLight.monoid_zero" as "Algebra.Monoid.0"
-const "HOLLight.monoid_mult_add" as "Algebra.Monoid.multAdd"
+const "Algebra.Monoid.+" as "HOLLight.monoid_add"
+const "Algebra.Monoid.*" as "HOLLight.monoid_mult"
+const "Algebra.Monoid.0" as "HOLLight.monoid_zero"
+const "Algebra.Monoid.multAdd" as "HOLLight.monoid_mult_add"

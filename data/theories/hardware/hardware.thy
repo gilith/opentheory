@@ -1,5 +1,5 @@
 name: hardware
-version: 1.82
+version: 1.83
 description: Hardware devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

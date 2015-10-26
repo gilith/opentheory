@@ -7,10 +7,10 @@
 
 # Hardware.Montgomery
 
-const "HOLLight.montgomery_double_exp" as "Hardware.Montgomery.doubleExp"
-const "HOLLight.montgomery_mult" as "Hardware.Montgomery.multiply"
-const "HOLLight.montgomery_mult_compress" as "Hardware.Montgomery.multiply.compress"
-const "HOLLight.montgomery_mult_reduce" as "Hardware.Montgomery.multiply.reduce"
+const "Hardware.Montgomery.doubleExp" as "HOLLight.montgomery_double_exp"
+const "Hardware.Montgomery.multiply" as "HOLLight.montgomery_mult"
+const "Hardware.Montgomery.multiply.compress" as "HOLLight.montgomery_mult_compress"
+const "Hardware.Montgomery.multiply.reduce" as "HOLLight.montgomery_mult_reduce"
 
 # Number
 
@@ -18,4 +18,4 @@ const "HOLLight.montgomery_mult_reduce" as "Hardware.Montgomery.multiply.reduce"
 
 # Number.Natural.Montgomery
 
-const "HOLLight.montgomery_reduce" as "Number.Natural.Montgomery.reduce"
+const "Number.Natural.Montgomery.reduce" as "HOLLight.montgomery_reduce"

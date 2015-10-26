@@ -1,5 +1,5 @@
 name: word10
-version: 1.117
+version: 1.122
 description: 10-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,9 +14,10 @@ show: "Data.Word10.Bits"
 show: "Number.Natural"
 show: "Probability.Random"
 hol-light-int-file: hol-light.int
+hol-light-thm-file: hol-light.art
 
 def {
-  package: word10-def-1.93
+  package: word10-def-1.97
 }
 
 bits {

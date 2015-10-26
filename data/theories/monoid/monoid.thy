@@ -1,5 +1,5 @@
 name: monoid
-version: 1.15
+version: 1.16
 description: Parametric theory of monoids
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

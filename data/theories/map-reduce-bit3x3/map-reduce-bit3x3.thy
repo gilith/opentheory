@@ -1,5 +1,5 @@
 name: map-reduce-bit3x3
-version: 1.6
+version: 1.7
 description: The map reduce 3x3 bit matrix example
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

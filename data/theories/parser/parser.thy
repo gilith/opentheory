@@ -1,5 +1,5 @@
 name: parser
-version: 1.160
+version: 1.161
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

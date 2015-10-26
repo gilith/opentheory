@@ -1,5 +1,5 @@
 name: gfp
-version: 1.95
+version: 1.97
 description: Parametric theory of GF(p) finite fields
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -20,7 +20,7 @@ hol-light-int-file: hol-light.int
 hol-light-thm-file: hol-light.art
 
 def {
-  package: gfp-def-1.74
+  package: gfp-def-1.75
 }
 
 thm {

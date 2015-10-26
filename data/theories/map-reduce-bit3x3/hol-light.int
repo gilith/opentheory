@@ -5,15 +5,15 @@
 
 # Bit
 
-const "HOLLight.bit_add" as "Bit.+"
-const "HOLLight.bit_mult" as "Bit.*"
+const "Bit.+" as "HOLLight.bit_add"
+const "Bit.*" as "HOLLight.bit_mult"
 
 # Bit3
 
-const "HOLLight.bit3_dot" as "Bit3.dot"
+const "Bit3.dot" as "HOLLight.bit3_dot"
 
 # Bit3x3
 
-const "HOLLight.bit3x3_mult" as "Bit3x3.*"
-const "HOLLight.bit3x3_identity" as "Bit3x3.identity"
-const "HOLLight.bit3x3_product" as "Bit3x3.product"
+const "Bit3x3.*" as "HOLLight.bit3x3_mult"
+const "Bit3x3.identity" as "HOLLight.bit3x3_identity"
+const "Bit3x3.product" as "HOLLight.bit3x3_product"
