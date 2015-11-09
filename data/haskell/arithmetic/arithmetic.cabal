@@ -37,6 +37,7 @@ Library
     Arithmetic.Prime.Sieve,
     Arithmetic.Quadratic,
     Arithmetic.Random,
+    Arithmetic.Ring,
     Arithmetic.Utility,
     Arithmetic.Utility.Heap,
     Arithmetic.Williams

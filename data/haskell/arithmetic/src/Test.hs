@@ -27,6 +27,7 @@ import qualified Arithmetic.Prime.Factor as Factor
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
 import qualified Arithmetic.Quadratic as Quadratic
+import qualified Arithmetic.Ring as Ring
 import qualified Arithmetic.Williams as Williams
 
 propPrimes :: Natural -> Bool
@@ -69,6 +70,21 @@ propModularNegate np rnd =
     n = np + 1
     a = Uniform.random n rnd
     b = Modular.negate n a
+
+propModularSubtract :: Natural -> Natural -> Natural -> Bool
+propModularSubtract np a b =
+    Modular.subtract n a b ==
+    Ring.subtract r (Ring.fromNatural r a) (Ring.fromNatural r b)
+  where
+    n = np + 1
+    r = Modular.ring n
+
+propModularExp2 :: Natural -> Natural -> Natural -> Bool
+propModularExp2 np x k =
+    Modular.exp2 n x k == Ring.exp2 r (Ring.fromNatural r x) k
+  where
+    n = np + 1
+    r = Modular.ring n
 
 propModularInvert :: Natural -> Natural -> Bool
 propModularInvert np a =
@@ -369,6 +385,8 @@ main =
        check "Generating random RSA moduli" propRandomRSA
        check "Trial division" propTrialDivision
        check "Modular negate" propModularNegate
+       check "Modular subtract" propModularSubtract
+       check "Modular exp2" propModularExp2
        check "Modular invert" propModularInvert
        check "Fermat's little theorem" propFermat
        check "Montgomery invariant" propMontgomeryInvariant
