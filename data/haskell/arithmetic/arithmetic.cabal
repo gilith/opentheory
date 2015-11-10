@@ -32,6 +32,7 @@ Library
     Arithmetic.Lucas,
     Arithmetic.Modular,
     Arithmetic.Montgomery,
+    Arithmetic.Polynomial,
     Arithmetic.Prime,
     Arithmetic.Prime.Factor,
     Arithmetic.Prime.Sieve,
