@@ -41,11 +41,11 @@ invert n x =
 
 ring :: Natural -> Ring.Ring Natural
 ring n =
-    Ring.Ring { Ring.fromNatural = normalize n,
-                Ring.add = add n,
-                Ring.negate = Arithmetic.Modular.negate n,
-                Ring.multiply = multiply n,
-                Ring.invert = invert n }
+    Ring.Ring {Ring.fromNatural = normalize n,
+               Ring.add = add n,
+               Ring.negate = Arithmetic.Modular.negate n,
+               Ring.multiply = multiply n,
+               Ring.invert = invert n}
 
 double :: Natural -> Natural -> Natural
 double = Ring.double . ring

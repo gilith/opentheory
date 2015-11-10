@@ -23,8 +23,8 @@ rootFloor n =
   where
     bisect l u =
         if m == l then l
-	else if m * m <= n then bisect m u
-	else bisect l m
+        else if m * m <= n then bisect m u
+        else bisect l m
       where
         m = (l + u) `div` 2
 
