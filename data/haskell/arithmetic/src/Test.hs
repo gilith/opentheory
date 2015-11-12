@@ -473,6 +473,7 @@ propPolynomialMultiplyEvaluate np ps qs xp =
     q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) qs)
     x = Ring.fromNatural r xp
 
+{-
 np = (4 :: Natural)
 ps = ([10,6,11,4,4,5,3,12,1] :: [Natural])
 qs = ([9,4,14,4,1,5,5,4,4] :: [Natural])
@@ -484,6 +485,7 @@ d_p = Polynomial.degree p
 d_q = Polynomial.degree q
 pq = Polynomial.add p q
 d_pq = Polynomial.degree pq
+-}
 
 check :: QuickCheck.Testable prop => String -> prop -> IO ()
 check desc prop =
