@@ -26,6 +26,7 @@ import qualified Arithmetic.ContinuedFraction as ContinuedFraction
 import qualified Arithmetic.Prime.Factor as Factor
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
+import qualified Arithmetic.Polynomial as Polynomial
 import qualified Arithmetic.Quadratic as Quadratic
 import qualified Arithmetic.Ring as Ring
 import qualified Arithmetic.Williams as Williams
@@ -368,6 +369,122 @@ propWilliamsFactor np x k rnd =
   where
     n = 2 * np + 5
 
+propPolynomialConstantDegree :: Natural -> Natural -> Bool
+propPolynomialConstantDegree np cp =
+    Polynomial.degree (Polynomial.constant r c) == if c == 0 then 0 else 1
+  where
+    n = np + 1
+    r = Modular.ring n
+    c = Ring.fromNatural r cp
+
+propPolynomialFromNaturalDegree :: Natural -> Natural -> Bool
+propPolynomialFromNaturalDegree np c =
+    Polynomial.degree (Polynomial.fromNatural r c) ==
+    if divides n c then 0 else 1
+  where
+    n = np + 1
+    r = Modular.ring n
+
+propPolynomialAddDegree :: Natural -> [Natural] -> [Natural] -> Bool
+propPolynomialAddDegree np ps qs =
+    if d_p == d_q then d_pq <= d_p
+    else d_pq == max d_p d_q
+  where
+    n = np + 1
+    r = Modular.ring n
+    p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
+    q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) qs)
+    d_p = Polynomial.degree p
+    d_q = Polynomial.degree q
+    pq = Polynomial.add p q
+    d_pq = Polynomial.degree pq
+
+propPolynomialNegateDegree :: Natural -> [Natural] -> Bool
+propPolynomialNegateDegree np ps =
+    Polynomial.degree (Polynomial.negate p) == Polynomial.degree p
+  where
+    n = np + 1
+    r = Modular.ring n
+    p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
+
+propPolynomialMultiplyDegree :: Natural -> [Natural] -> [Natural] -> Bool
+propPolynomialMultiplyDegree np ps qs =
+    if d_p == 0 || d_q == 0 then d_pq == 0
+    else d_pq + 1 <= d_p + d_q
+  where
+    n = np + 1
+    r = Modular.ring n
+    p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
+    q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) qs)
+    d_p = Polynomial.degree p
+    d_q = Polynomial.degree q
+    pq = Polynomial.multiply p q
+    d_pq = Polynomial.degree pq
+
+propPolynomialConstantEvaluate :: Natural -> Natural -> Natural -> Bool
+propPolynomialConstantEvaluate np cp xp =
+    Polynomial.evaluate (Polynomial.constant r c) x == c
+  where
+    n = np + 1
+    r = Modular.ring n
+    c = Ring.fromNatural r cp
+    x = Ring.fromNatural r xp
+
+propPolynomialFromNaturalEvaluate :: Natural -> Natural -> Natural -> Bool
+propPolynomialFromNaturalEvaluate np c xp =
+    Polynomial.evaluate (Polynomial.fromNatural r c) x ==
+    Ring.fromNatural r c
+  where
+    n = np + 1
+    r = Modular.ring n
+    x = Ring.fromNatural r xp
+
+propPolynomialAddEvaluate ::
+  Natural -> [Natural] -> [Natural] -> Natural -> Bool
+propPolynomialAddEvaluate np ps qs xp =
+    Polynomial.evaluate (Polynomial.add p q) x ==
+    Ring.add r (Polynomial.evaluate p x) (Polynomial.evaluate q x)
+  where
+    n = np + 1
+    r = Modular.ring n
+    p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
+    q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) qs)
+    x = Ring.fromNatural r xp
+
+propPolynomialNegateEvaluate :: Natural -> [Natural] -> Natural -> Bool
+propPolynomialNegateEvaluate np ps xp =
+    Polynomial.evaluate (Polynomial.negate p) x ==
+    Ring.negate r (Polynomial.evaluate p x)
+  where
+    n = np + 1
+    r = Modular.ring n
+    p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
+    x = Ring.fromNatural r xp
+
+propPolynomialMultiplyEvaluate ::
+  Natural -> [Natural] -> [Natural] -> Natural -> Bool
+propPolynomialMultiplyEvaluate np ps qs xp =
+    Polynomial.evaluate (Polynomial.multiply p q) x ==
+    Ring.multiply r (Polynomial.evaluate p x) (Polynomial.evaluate q x)
+  where
+    n = np + 1
+    r = Modular.ring n
+    p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
+    q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) qs)
+    x = Ring.fromNatural r xp
+
+np = (4 :: Natural)
+ps = ([10,6,11,4,4,5,3,12,1] :: [Natural])
+qs = ([9,4,14,4,1,5,5,4,4] :: [Natural])
+n = np + 1
+r = Modular.ring n
+p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
+q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) qs)
+d_p = Polynomial.degree p
+d_q = Polynomial.degree q
+pq = Polynomial.add p q
+d_pq = Polynomial.degree pq
+
 check :: QuickCheck.Testable prop => String -> prop -> IO ()
 check desc prop =
     do putStr (desc ++ "\n  ")
@@ -417,4 +534,14 @@ main =
        check "Williams sequence exponential" propWilliamsNthExp
        check "Williams sequence equals two" propWilliamsNthEqTwo
        check "Williams factorization works" propWilliamsFactor
+       check "Polynomial constant degree" propPolynomialConstantDegree
+       check "Polynomial fromNatural degree" propPolynomialFromNaturalDegree
+       check "Polynomial add degree" propPolynomialAddDegree
+       check "Polynomial negate degree" propPolynomialNegateDegree
+       check "Polynomial multiply degree" propPolynomialMultiplyDegree
+       check "Polynomial constant evaluate" propPolynomialConstantEvaluate
+       check "Polynomial fromNatural evaluate" propPolynomialFromNaturalEvaluate
+       check "Polynomial add evaluate" propPolynomialAddEvaluate
+       check "Polynomial negate evaluate" propPolynomialNegateEvaluate
+       check "Polynomial multiply evaluate" propPolynomialMultiplyEvaluate
        return ()

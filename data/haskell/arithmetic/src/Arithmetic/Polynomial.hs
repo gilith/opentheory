@@ -12,6 +12,8 @@ where
 
 import OpenTheory.Primitive.Natural
 import OpenTheory.List
+import Data.List as List
+import Data.Maybe as Maybe
 
 import Arithmetic.Utility
 import qualified Arithmetic.Ring as Ring
@@ -21,6 +23,38 @@ data Polynomial a =
        {carrier :: Ring.Ring a,
         coefficients :: [a]}
 
+instance (Eq a, Show a) => Show (Polynomial a) where
+  show p =
+      if null ps then "0"
+      else List.intercalate " + " ps
+    where
+      r = carrier p
+      z = Ring.zero r
+      o = Ring.one r
+      ps = showC 0 (coefficients p)
+
+      showC _ [] = []
+      showC k (x : xs) = showM x k ++ showC (k + 1) xs
+
+      showM x k =
+          if x == z then []
+          else [(if k /= 0 && x == o then "" else show x) ++
+                (if k == 0 then ""
+                 else ("x" ++ (if k == 1 then "" else "^" ++ show k)))]
+
+fromCoefficients :: Eq a => Ring.Ring a -> [a] -> Polynomial a
+fromCoefficients r cs =
+    Polynomial
+      {carrier = r,
+       coefficients = norm cs}
+  where
+    z = Ring.zero r
+
+    zcons x xs = if null xs && x == z then [] else x : xs
+
+    norm [] = []
+    norm (x : xs) = zcons x (norm xs)
+
 zero :: Ring.Ring a -> Polynomial a
 zero r =
     Polynomial
@@ -28,18 +62,10 @@ zero r =
        coefficients = []}
 
 isZero :: Polynomial a -> Bool
-isZero p =
-    case coefficients p of
-      [] -> True
-      _ -> False
+isZero = null . coefficients
 
 constant :: Eq a => Ring.Ring a -> a -> Polynomial a
-constant r x =
-    if x == Ring.zero r then zero r
-    else
-      Polynomial
-        {carrier = r,
-         coefficients = [x]}
+constant r x = fromCoefficients r [x]
 
 destConstant :: Polynomial a -> Maybe a
 destConstant p =
@@ -51,10 +77,7 @@ destConstant p =
     r = carrier p
 
 isConstant :: Polynomial a -> Bool
-isConstant p =
-    case destConstant p of
-      Just _ -> True
-      Nothing -> False
+isConstant = Maybe.isJust . destConstant
 
 fromNatural :: Eq a => Ring.Ring a -> Natural -> Polynomial a
 fromNatural r = constant r . Ring.fromNatural r
@@ -70,21 +93,21 @@ evaluate p x =
     r = carrier p
     eval c z = Ring.add r c (Ring.multiply r x z)
 
+addCoefficients :: Ring.Ring a -> [a] -> [a] -> [a]
+addCoefficients r =
+    addc
+  where
+    addc [] ys = ys
+    addc xs [] = xs
+    addc (x : xs) (y : ys) = Ring.add r x y : addc xs ys
+
 add :: Eq a => Polynomial a -> Polynomial a -> Polynomial a
 add p q =
-    Polynomial
-      {carrier = r,
-       coefficients = addc (coefficients p) (coefficients q)}
+    fromCoefficients r (addCoefficients r ps qs)
   where
     r = carrier p
-    z = Ring.zero r
-
-    norm c [] = if c == z then [] else [c]
-    norm c cs = c : cs
-
-    addc [] ql = ql
-    addc pl [] = pl
-    addc (ph : pt) (qh : qt) = norm (Ring.add r ph qh) (addc pt qt)
+    ps = coefficients p
+    qs = coefficients q
 
 negate :: Polynomial a -> Polynomial a
 negate p =
@@ -100,20 +123,17 @@ multiply p q =
     case coefficients q of
       [] -> zero r
       qh : qt ->
-          Polynomial
-            {carrier = r,
-             coefficients = foldr multc [] (coefficients p)}
+          fromCoefficients r (foldr multc [] (coefficients p))
         where
+          z = Ring.zero r
+
+          madd pc cs = addCoefficients r (map (Ring.multiply r pc) qt) cs
+
           multc pc cs =
               if pc == z then z : cs
-              else Ring.multiply r pc qh : addc (map (Ring.multiply r pc) qt) cs
+              else Ring.multiply r pc qh : madd pc cs
   where
     r = carrier p
-    z = Ring.zero r
-
-    addc xs [] = xs
-    addc [] ys = ys
-    addc (x : xs) (y : ys) = Ring.add r x y : addc xs ys
 
 invert :: Polynomial a -> Maybe (Polynomial a)
 invert p =
