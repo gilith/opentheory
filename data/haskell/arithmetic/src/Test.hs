@@ -11,12 +11,13 @@ module Main
   ( main )
 where
 
-import qualified Test.QuickCheck as QuickCheck
 import OpenTheory.Primitive.Natural
 import OpenTheory.Natural
 import OpenTheory.Natural.Divides
 import qualified OpenTheory.Natural.Bits as Bits
+import qualified Data.Maybe as Maybe
 import qualified OpenTheory.Natural.Prime as Prime
+import qualified Test.QuickCheck as QuickCheck
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 
@@ -440,7 +441,7 @@ propPolynomialFromNaturalEvaluate np c xp =
     x = Ring.fromNatural r xp
 
 propPolynomialAddEvaluate ::
-  Natural -> [Natural] -> [Natural] -> Natural -> Bool
+    Natural -> [Natural] -> [Natural] -> Natural -> Bool
 propPolynomialAddEvaluate np ps qs xp =
     Polynomial.evaluate (Polynomial.add p q) x ==
     Ring.add r (Polynomial.evaluate p x) (Polynomial.evaluate q x)
@@ -462,7 +463,7 @@ propPolynomialNegateEvaluate np ps xp =
     x = Ring.fromNatural r xp
 
 propPolynomialMultiplyEvaluate ::
-  Natural -> [Natural] -> [Natural] -> Natural -> Bool
+    Natural -> [Natural] -> [Natural] -> Natural -> Bool
 propPolynomialMultiplyEvaluate np ps qs xp =
     Polynomial.evaluate (Polynomial.multiply p q) x ==
     Ring.multiply r (Polynomial.evaluate p x) (Polynomial.evaluate q x)
@@ -473,18 +474,36 @@ propPolynomialMultiplyEvaluate np ps qs xp =
     q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) qs)
     x = Ring.fromNatural r xp
 
+propPolynomialQuotientRemainder :: Natural -> [Natural] -> [Natural] -> Bool
+propPolynomialQuotientRemainder np ps qs =
+    case Polynomial.quotientRemainder p q of
+      Nothing -> True
+      Just (a,b) -> Polynomial.coefficients p ==
+                    Polynomial.coefficients (Polynomial.add (Polynomial.multiply a q) b)
+  where
+    n = np + 1
+    r = Modular.ring n
+    p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
+    q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) qs)
+
+propPolynomialQuotientRemainderMonic ::
+    Natural -> [Natural] -> [Natural] -> Bool
+propPolynomialQuotientRemainderMonic np ps qs =
+    Maybe.isJust (Polynomial.quotientRemainder p q)
+  where
+    n = np + 2
+    r = Modular.ring n
+    p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
+    q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) (qs ++ [1]))
+
 {-
-np = (4 :: Natural)
-ps = ([10,6,11,4,4,5,3,12,1] :: [Natural])
-qs = ([9,4,14,4,1,5,5,4,4] :: [Natural])
-n = np + 1
+np = (0 :: Natural)
+ps = ([] :: [Natural])
+qs = ([] :: [Natural])
+n = np + 2
 r = Modular.ring n
 p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
-q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) qs)
-d_p = Polynomial.degree p
-d_q = Polynomial.degree q
-pq = Polynomial.add p q
-d_pq = Polynomial.degree pq
+q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) (qs ++ [1]))
 -}
 
 check :: QuickCheck.Testable prop => String -> prop -> IO ()
@@ -546,4 +565,7 @@ main =
        check "Polynomial add evaluate" propPolynomialAddEvaluate
        check "Polynomial negate evaluate" propPolynomialNegateEvaluate
        check "Polynomial multiply evaluate" propPolynomialMultiplyEvaluate
+       check "Polynomial quotient remainder" propPolynomialQuotientRemainder
+       check "Polynomial quotient remainder monic"
+         propPolynomialQuotientRemainderMonic
        return ()

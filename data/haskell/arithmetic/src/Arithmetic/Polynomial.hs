@@ -15,7 +15,6 @@ import OpenTheory.List
 import Data.List as List
 import Data.Maybe as Maybe
 
-import Arithmetic.Utility
 import qualified Arithmetic.Ring as Ring
 
 data Polynomial a =
@@ -31,7 +30,7 @@ instance (Eq a, Show a) => Show (Polynomial a) where
       r = carrier p
       z = Ring.zero r
       o = Ring.one r
-      ps = showC 0 (coefficients p)
+      ps = showC (0 :: Natural) (coefficients p)
 
       showC _ [] = []
       showC k (x : xs) = showM x k ++ showC (k + 1) xs
@@ -82,8 +81,46 @@ isConstant = Maybe.isJust . destConstant
 fromNatural :: Eq a => Ring.Ring a -> Natural -> Polynomial a
 fromNatural r = constant r . Ring.fromNatural r
 
+one :: Eq a => Ring.Ring a -> Polynomial a
+one r = constant r (Ring.one r)
+
+multiplyByPower :: Polynomial a -> Natural -> Polynomial a
+multiplyByPower p k =
+    if k == 0 || null cs then p
+    else p {coefficients = replicate (fromIntegral k) z ++ cs}
+  where
+    r = carrier p
+    z = Ring.zero r
+    cs = coefficients p
+
+monomial :: Eq a => Ring.Ring a -> a -> Natural -> Polynomial a
+monomial r x = multiplyByPower (constant r x)
+
+variablePower :: Eq a => Ring.Ring a -> Natural -> Polynomial a
+variablePower r = monomial r (Ring.one r)
+
+variable :: Eq a => Ring.Ring a -> Polynomial a
+variable r = variablePower r 1
+
 degree :: Polynomial a -> Natural
 degree = naturalLength . coefficients
+
+leadingCoefficient :: Polynomial a -> Maybe a
+leadingCoefficient p =
+    case coefficients p of
+      [] -> Nothing
+      cs -> Just (last cs)
+
+nthCoefficient :: Polynomial a -> Natural -> a
+nthCoefficient p k =
+    if k < degree p then coefficients p !! (fromIntegral k)
+    else Ring.zero (carrier p)
+
+isMonic :: Eq a => Polynomial a -> Bool
+isMonic p =
+    case leadingCoefficient p of
+      Nothing -> False
+      Just c -> c == Ring.one (carrier p)
 
 -- Horner's method
 evaluate :: Polynomial a -> a -> a
@@ -135,6 +172,9 @@ multiply p q =
   where
     r = carrier p
 
+multiplyByScalar :: Eq a => Polynomial a -> a -> Polynomial a
+multiplyByScalar p x = multiply p (constant (carrier p) x)
+
 invert :: Polynomial a -> Maybe (Polynomial a)
 invert p =
     case coefficients p of
@@ -152,3 +192,40 @@ ring r =
                Ring.negate = Arithmetic.Polynomial.negate,
                Ring.multiply = multiply,
                Ring.invert = invert}
+
+subtract :: Eq a => Polynomial a -> Polynomial a -> Polynomial a
+subtract p = Ring.subtract (ring (carrier p)) p
+
+quotientRemainder :: Eq a => Polynomial a -> Polynomial a ->
+                     Maybe (Polynomial a, Polynomial a)
+quotientRemainder p q =
+    if d_p < d_q then Just (zero r, p)
+    else case leadingCoefficient q of
+           Nothing -> Nothing
+           Just q_m ->
+               go [] p (d_p - d_q)
+             where
+               sub f k =
+                   if f_m == z then Just (z,f)
+                   else case Ring.divide r f_m q_m of
+                          Nothing -> Nothing
+                          Just c ->
+                              Just (c, Arithmetic.Polynomial.subtract f g)
+                            where
+                              g = multiplyByPower (multiplyByScalar q c) k
+                 where
+                   f_m = nthCoefficient f (d_q + k)
+
+               go cs f k =
+                   case sub f k of
+                     Nothing -> Nothing
+                     Just (c,g) -> go' (c : cs) g k
+
+               go' cs f k =
+                   if k == 0 then Just (fromCoefficients r cs, f)
+                   else go cs f (k - 1)
+  where
+    r = carrier p
+    z = Ring.zero r
+    d_p = degree p
+    d_q = degree q
