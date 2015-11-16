@@ -185,14 +185,6 @@ invert p =
   where
     r = carrier p
 
-ring :: Eq a => Ring.Ring a -> Ring.Ring (Polynomial a)
-ring r =
-    Ring.Ring {Ring.fromNatural = fromNatural r,
-               Ring.add = add,
-               Ring.negate = Arithmetic.Polynomial.negate,
-               Ring.multiply = multiply,
-               Ring.invert = invert}
-
 subtract :: Eq a => Polynomial a -> Polynomial a -> Polynomial a
 subtract p = Ring.subtract (ring (carrier p)) p
 
@@ -229,3 +221,17 @@ quotientRemainder p q =
     z = Ring.zero r
     d_p = degree p
     d_q = degree q
+
+divide :: Eq a => Polynomial a -> Polynomial a -> Maybe (Polynomial a)
+divide p q =
+    case quotientRemainder p q of
+      Nothing -> Nothing
+      Just (x,y) -> if isZero y then Just x else Nothing
+
+ring :: Eq a => Ring.Ring a -> Ring.Ring (Polynomial a)
+ring r =
+    Ring.Ring {Ring.fromNatural = fromNatural r,
+               Ring.add = add,
+               Ring.negate = Arithmetic.Polynomial.negate,
+               Ring.multiply = multiply,
+               Ring.divide = divide}

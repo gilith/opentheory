@@ -88,13 +88,28 @@ propModularExp2 np x k =
     n = np + 1
     r = Modular.ring n
 
-propModularInvert :: Natural -> Natural -> Bool
-propModularInvert np a =
-    case Modular.invert n a of
-      Nothing -> gcd n a /= 1
-      Just b -> Modular.multiply n a b == Modular.normalize n 1 && b < n
+propModularDivide :: Natural -> Natural -> Natural -> Bool
+propModularDivide np a b =
+    case Modular.divide n a b of
+      Nothing -> not (Modular.divides n a b)
+      Just c -> Modular.multiply n b c == Modular.normalize n a && c < n
   where
     n = np + 1
+
+propModularDivides :: Natural -> Natural -> Natural -> Bool
+propModularDivides np a b =
+    Modular.divides n a b ==
+    Ring.divides r (Ring.fromNatural r a) (Ring.fromNatural r b)
+  where
+    n = np + 1
+    r = Modular.ring n
+
+propModularInvert :: Natural -> Natural -> Bool
+propModularInvert np a =
+    Modular.invert n a == Ring.invert r (Ring.fromNatural r a)
+  where
+    n = np + 1
+    r = Modular.ring n
 
 propFermat :: Natural -> Random.Random -> Bool
 propFermat pp rnd =
@@ -525,6 +540,8 @@ main =
        check "Modular negate" propModularNegate
        check "Modular subtract" propModularSubtract
        check "Modular exp2" propModularExp2
+       check "Modular divide" propModularDivide
+       check "Modular divides" propModularDivides
        check "Modular invert" propModularInvert
        check "Fermat's little theorem" propFermat
        check "Montgomery invariant" propMontgomeryInvariant
