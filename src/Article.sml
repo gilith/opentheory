@@ -231,7 +231,9 @@ fun toTextFile {article,version,clearLocalNames,skipDefinitions,filename} =
       val exp =
           if not skipDefinitions then exp
           else
-            raise Bug "skipDefinitions not implemented"
+            case ObjectExport.skipDefinitions exp of
+              NONE => exp
+            | SOME exp => exp
 
       val exp =
           case ObjectExport.setVersion version exp of

@@ -18,6 +18,12 @@ val savable = {savable = true};
 (* Skip definitions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
+fun skipDefinition obj = NONE;
+
+(* ------------------------------------------------------------------------- *)
+(* Skip all definitions in a proof term.                                     *)
+(* ------------------------------------------------------------------------- *)
+
 datatype skipDefinitions =
     SkipDefinitions of
       {specialMap : Object.object option IntMap.map};
@@ -60,7 +66,7 @@ local
               NONE => (unchanged,obj0)
             | SOME obj => (false,obj)
 
-        val (obj2',skip) = (NONE,skip)
+        val obj2' = skipDefinition obj1
 
         val (unchanged,obj2) =
             case obj2' of
