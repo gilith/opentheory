@@ -205,7 +205,7 @@ fun fromTextFile {savable,import,interpretation,filename} =
     handle Error err => raise Error ("in Article.fromTextFile:\n" ^ err);
 *)
 
-fun toTextFile {article,version,clearLocalNames,filename} =
+fun toTextFile {article,version,clearLocalNames,skipDefinitions,filename} =
     let
       val Article {savable, thms, inference = _} = article
 
@@ -227,6 +227,11 @@ fun toTextFile {article,version,clearLocalNames,filename} =
             case ObjectExport.clearLocalNames exp of
               NONE => exp
             | SOME exp => exp
+
+      val exp =
+          if not skipDefinitions then exp
+          else
+            raise Bug "skipDefinitions not implemented"
 
       val exp =
           case ObjectExport.setVersion version exp of

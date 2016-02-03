@@ -61,6 +61,14 @@ val sharingRename :
     thm -> ObjectRename.rename -> thm option * ObjectRename.rename
 
 (* ------------------------------------------------------------------------- *)
+(* Replace definitions with theory assumptions.                              *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingSkipDefinitions :
+    thm -> ObjectSkipDefinitions.skipDefinitions ->
+    thm option * ObjectSkipDefinitions.skipDefinitions
+
+(* ------------------------------------------------------------------------- *)
 (* Adding to a store.                                                        *)
 (* ------------------------------------------------------------------------- *)
 

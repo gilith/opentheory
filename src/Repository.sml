@@ -1242,6 +1242,7 @@ local
                   {article = art,
                    version = ArticleVersion.install,
                    clearLocalNames = false,
+                   skipDefinitions = false,
                    filename = destFilename}
 
             val node =

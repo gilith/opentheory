@@ -67,6 +67,7 @@ val toTextFile :
     {article : article,
      version : ArticleVersion.version,
      clearLocalNames : bool,
+     skipDefinitions : bool,
      filename : string} -> unit
 
 end

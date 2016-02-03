@@ -851,6 +851,8 @@ val preserveTheoryInfo = ref false;
 
 val clearLocalNamesInfo = ref false;
 
+val skipDefinitions = ref false;
+
 val showAssumptionsInfo = ref false;
 
 val showDerivationsInfo = ref false;
@@ -1049,6 +1051,9 @@ in
        {switches = ["--clear-local-names"], arguments = [],
         description = "clear names of symbols local to the theory",
         processor = beginOpt endOpt (fn _ => clearLocalNamesInfo := true)},
+       {switches = ["--skip-definitions"], arguments = [],
+        description = "replace definitions with theory assumptions",
+        processor = beginOpt endOpt (fn _ => skipDefinitions := true)},
        {switches = ["--manual-install"], arguments = [],
         description = "do not auto-install packages",
         processor = beginOpt endOpt (fn _ => autoInstall := false)}];
@@ -2132,6 +2137,7 @@ local
             {article = art,
              version = version,
              clearLocalNames = !clearLocalNamesInfo,
+             skipDefinitions = !skipDefinitions,
              filename = filename}
         end
       | AssumptionsInfo =>

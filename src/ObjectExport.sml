@@ -362,6 +362,24 @@ fun clearLocalNames exp =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Replace definitions with theory assumptions.                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun skipDefinitions exp =
+    let
+(*OpenTheoryDebug
+      val () =
+          if savable exp then ()
+          else raise Bug "ObjectExport.skipDefinitions: unsavable"
+*)
+      val skip = ObjectSkipDefinitions.empty
+
+      val (exp',_) = maps ObjectThm.sharingSkipDefinitions exp skip
+    in
+      exp'
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Convert to a given article version.                                       *)
 (* ------------------------------------------------------------------------- *)
 

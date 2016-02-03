@@ -411,6 +411,7 @@ fun compress system name =
             {article = article,
              version = ArticleVersion.writeDefault,
              clearLocalNames = false,
+             skipDefinitions = false,
              filename = outputFilename}
     in
       ()

@@ -131,6 +131,12 @@ val sharingEliminateUnwanted = maps ObjectUnwanted.sharingEliminate;
 val sharingRename = maps ObjectRename.sharingRename;
 
 (* ------------------------------------------------------------------------- *)
+(* Replace definitions with theory assumptions.                              *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingSkipDefinitions = maps ObjectSkipDefinitions.sharingSkipDefinitions;
+
+(* ------------------------------------------------------------------------- *)
 (* Adding to a store.                                                        *)
 (* ------------------------------------------------------------------------- *)
 

@@ -91,6 +91,12 @@ val eliminateUnwanted : export -> export option
 val clearLocalNames : export -> export option
 
 (* ------------------------------------------------------------------------- *)
+(* Replace definitions with theory assumptions.                              *)
+(* ------------------------------------------------------------------------- *)
+
+val skipDefinitions : export -> export option
+
+(* ------------------------------------------------------------------------- *)
 (* Convert to a given article version.                                       *)
 (* ------------------------------------------------------------------------- *)
 

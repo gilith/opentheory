@@ -123,6 +123,7 @@ SRC = \
   src/ObjectRewrite.sig src/ObjectRewrite.sml \
   src/ObjectRename.sig src/ObjectRename.sml \
   src/ObjectUnwanted.sig src/ObjectUnwanted.sml \
+  src/ObjectSkipDefinitions.sig src/ObjectSkipDefinitions.sml \
   src/ObjectVersion.sig src/ObjectVersion.sml \
   src/ObjectThm.sig src/ObjectThm.sml \
   src/ObjectExport.sig src/ObjectExport.sml \
