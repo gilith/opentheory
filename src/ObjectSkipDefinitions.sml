@@ -18,7 +18,68 @@ val savable = {savable = true};
 (* Skip definitions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun skipDefinition obj = NONE;
+fun undefData data =
+    case data of
+      ObjectData.Const c =>
+      let
+        val c = Const.mkUndef (Const.name c)
+      in
+        ObjectData.Const c
+      end
+    | ObjectData.List l =>
+      let
+        val l = map undefData l
+      in
+        ObjectData.List l
+      end
+    | ObjectData.Thm th =>
+      let
+        val Sequent.Sequent {hyp,concl} = Thm.sequent th
+
+        val () =
+            if TermAlphaSet.null hyp then ()
+            else raise Bug "ObjectSkipDefinitions.undefData: bad hyp"
+
+        val concl =
+            case TermRewrite.rewriteTerm TermRewrite.undef concl of
+              NONE => raise Bug "ObjectSkipDefinitions.undefData: bad concl"
+            | SOME c => c
+
+        val th = Thm.axiom (Sequent.Sequent {hyp = hyp, concl = concl})
+      in
+        ObjectData.Thm th
+      end
+    | ObjectData.TypeOp t =>
+      let
+        val t = TypeOp.mkUndef (TypeOp.name t)
+      in
+        ObjectData.TypeOp t
+      end
+    | _ => raise Bug "ObjectSkipDefinitions.undefData: strange object";
+
+fun isDefinedObject obj =
+    case Object.provenance obj of
+      Object.Default => false
+    | Object.Special {command,...} =>
+      case command of
+        Command.DefineConst => true
+      | Command.DefineConstList => true
+      | Command.DefineTypeOp => true
+      | Command.DefineTypeOpLegacy => true
+      | _ => false;
+
+fun skipDefinition obj =
+    if not (isDefinedObject obj) then NONE
+    else
+      let
+        val data = Object.data obj
+      in
+        SOME (Object.mkUnsavable (undefData data))
+      end
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Error ("in ObjectSkipDefinitions.skipDefinition:\n" ^ err);
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* Skip all definitions in a proof term.                                     *)
