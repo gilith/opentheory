@@ -17,6 +17,7 @@ and checksumKeywordString = "checksum"
 and closeBlockChar = #"}"
 and importKeywordString = "import"
 and interpretKeywordString = "interpret"
+and interpretationKeywordString = "interpretation"
 and openBlockChar = #"{"
 and packageKeywordString = "package"
 and quoteChar = #"\""
@@ -31,9 +32,11 @@ type name = PackageName.name;
 datatype node =
     Article of
       {interpretation : Interpretation.interpretation,
+       interpretationFiles : string list,
        filename : string}
   | Include of
       {interpretation : Interpretation.interpretation,
+       interpretationFiles : string list,
        package : PackageNameVersion.nameVersion,
        checksum : Checksum.checksum option}
   | Union;
@@ -314,6 +317,7 @@ datatype constraint =
   | ChecksumConstraint of Checksum.checksum
   | ImportConstraint of name
   | InterpretConstraint of Interpretation.rewrite
+  | InterpretationConstraint of {filename : string}
   | PackageConstraint of PackageNameVersion.nameVersion;
 
 fun destArticleConstraint c =
