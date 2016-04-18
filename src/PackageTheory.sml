@@ -31,12 +31,10 @@ type name = PackageName.name;
 
 datatype node =
     Article of
-      {interpretation : Interpretation.interpretation,
-       interpretationFiles : string list,
+      {interpret : Interpretation.interpretation * {filename : string} list,
        filename : string}
   | Include of
-      {interpretation : Interpretation.interpretation,
-       interpretationFiles : string list,
+      {interpret : Interpretation.interpretation * {filename : string} list,
        package : PackageNameVersion.nameVersion,
        checksum : Checksum.checksum option}
   | Union;
@@ -96,12 +94,25 @@ fun destInclude thy = includeNode (node thy);
 
 fun includes thys = List.mapPartial destInclude thys;
 
-fun updateIncludeNode f node =
+fun updateIncludeNode update node =
     case node of
-      Include {interpretation = i, package = nv, checksum = c} =>
-      (case f nv c of
+      Include
+        {interpret = i,
+         interpretation = f,
+         package = nv,
+         checksum = c} =>
+      (case update nv c of
          SOME (nv,c) =>
-         SOME (Include {interpretation = i, package = nv, checksum = c})
+         let
+           val node =
+               Include
+                 {interpret = i,
+                  interpretation = f,
+                  package = nv,
+                  checksum = c}
+         in
+           SOME node
+         end
        | NONE => NONE)
     | _ => NONE;
 
@@ -320,9 +331,13 @@ datatype constraint =
   | InterpretationConstraint of {filename : string}
   | PackageConstraint of PackageNameVersion.nameVersion;
 
+fun mkArticleConstraint f = ArticleConstraint {filename = f};
+
+fun mkInterpretationConstraint f = InterpretationConstraint {filename = f};
+
 fun destArticleConstraint c =
     case c of
-      ArticleConstraint f => SOME f
+      ArticleConstraint {filename} => SOME filename
     | _ => NONE;
 
 fun destChecksumConstraint c =
@@ -337,7 +352,12 @@ fun destImportConstraint c =
 
 fun destInterpretConstraint c =
     case c of
-      InterpretConstraint r => SOME r
+      InterpretConstraint i => SOME i
+    | _ => NONE;
+
+fun destInterpretationConstraint c =
+    case c of
+      InterpretationConstraint {filename} => SOME filename
     | _ => NONE;
 
 fun destPackageConstraint c =
@@ -353,6 +373,9 @@ fun destImportConstraints cs = List.mapPartial destImportConstraint cs;
 
 fun destInterpretConstraints cs = List.mapPartial destInterpretConstraint cs;
 
+fun destInterpretationConstraints cs =
+    List.mapPartial destInterpretationConstraint cs;
+
 fun destPackageConstraints cs = List.mapPartial destPackageConstraint cs;
 
 fun mkTheory (name,cs) =
@@ -360,6 +383,8 @@ fun mkTheory (name,cs) =
       val imports = destImportConstraints cs
 
       val rws = destInterpretConstraints cs
+
+      val ifs = destInterpretationConstraints cs
 
       val chks = destChecksumConstraints cs
 
@@ -370,6 +395,10 @@ fun mkTheory (name,cs) =
               val () =
                   if List.null rws then ()
                   else raise Error "interpret in union theory block"
+
+              val () =
+                  if List.null ifs then ()
+                  else raise Error "interpretation in union theory block"
 
               val () =
                   if List.null chks then ()
@@ -383,7 +412,7 @@ fun mkTheory (name,cs) =
             raise Error "multiple articles in theory block"
           | ([], _ :: _ :: _) =>
             raise Error "multiple packages in theory block"
-          | ([{filename}],[]) =>
+          | ([filename],[]) =>
             let
               val () =
                   if List.null chks then ()
@@ -392,7 +421,8 @@ fun mkTheory (name,cs) =
               val int = Interpretation.fromRewriteList rws
             in
               Article
-                {interpretation = int,
+                {interpret = int,
+                 interpretation = ifs,
                  filename = filename}
             end
           | ([],[p]) =>
@@ -407,7 +437,8 @@ fun mkTheory (name,cs) =
               val int = Interpretation.fromRewriteList rws
             in
               Include
-                {interpretation = int,
+                {interpret = int,
+                 interpretation = ifs,
                  package = p,
                  checksum = c}
             end
@@ -426,14 +457,19 @@ fun destTheory thy =
 
       val ncs =
           case node of
-            Article {interpretation = int, filename = f} =>
+            Article {interpret = int, interpretation = ifs, filename = f} =>
             let
               val rws = Interpretation.toRewriteList int
             in
               List.map InterpretConstraint rws @
-              [ArticleConstraint {filename = f}]
+              List.map mkInterpretationConstraint ifs @
+              [mkArticleConstraint f]
             end
-          | Include {interpretation = int, package = p, checksum = c} =>
+          | Include
+              {interpret = int,
+               interpretation = ifs,
+               package = p,
+               checksum = c} =>
             let
               val rws = Interpretation.toRewriteList int
 
@@ -443,6 +479,7 @@ fun destTheory thy =
                   | NONE => []
             in
               List.map InterpretConstraint rws @
+              List.map mkInterpretationConstraint ifs @
               [PackageConstraint p] @
               List.map ChecksumConstraint cs
             end
