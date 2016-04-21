@@ -142,6 +142,17 @@ fun emptyTheories info =
 fun articleFiles info = PackageTheory.articles (theories info);
 
 (* ------------------------------------------------------------------------- *)
+(* Package interpretation files.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun interpretationFiles info =
+    let
+      val ints = PackageTheory.interpretations (theories info)
+    in
+      PackageInterpretation.filenamesList ints
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

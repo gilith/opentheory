@@ -9,6 +9,44 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val fileExtension = "int";
+
+(* ------------------------------------------------------------------------- *)
+(* Interpretation filenames.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkFilename {base} =
+    let
+      val filename =
+          OS.Path.joinBaseExt
+            {base = base,
+             ext = SOME fileExtension}
+    in
+      {filename = filename}
+    end;
+
+fun destFilename {filename} =
+    let
+      val {base,ext} = OS.Path.splitBaseExt (OS.Path.file filename)
+    in
+      case ext of
+        SOME x => if x = fileExtension then SOME {base = base} else NONE
+      | NONE => NONE
+    end;
+
+fun isFilename file = Option.isSome (destFilename file);
+
+fun normalizeFilename {filename} =
+    let
+      val base = OS.Path.base (OS.Path.file filename)
+    in
+      mkFilename {base = base}
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory package interpretations.                                 *)
 (* ------------------------------------------------------------------------- *)
 
@@ -16,6 +54,14 @@ datatype interpretation =
     Interpretation of
       {rewrites : Interpretation.rewrite list,
        filenames : {filename : string} list};
+
+(* ------------------------------------------------------------------------- *)
+(* Interpretation files.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun filenames (Interpretation {filenames = x, ...}) = x;
+
+fun filenamesList ints = List.concat (List.map filenames ints);
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)

@@ -82,6 +82,20 @@ fun article thy = articleNode (node thy);
 fun articles thys = List.mapPartial article thys;
 
 (* ------------------------------------------------------------------------- *)
+(* Interpretation files.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun interpretationNode node =
+    case node of
+      Article {interpretation = i, ...} => SOME i
+    | Include {interpretation = i, ...} => SOME i
+    | Union => NONE;
+
+fun interpretation thy = interpretationNode (node thy);
+
+fun interpretations thys = List.mapPartial interpretation thys;
+
+(* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

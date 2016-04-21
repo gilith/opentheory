@@ -1087,6 +1087,15 @@ local
               addFileCopyPlan (src,dest) plan
             end
 
+        fun addInterpretation ({filename = f}, plan) =
+            let
+              val src = {name = "interpretation file", filename = SOME f}
+
+              val dest = PackageInterpretation.normalizeFilename {filename = f}
+            in
+              addFileCopyPlan (src,dest) plan
+            end
+
         fun addExtra (extra,plan) =
             let
               val PackageExtra.Extra {name,filename} = PackageExtra.dest extra
@@ -1113,10 +1122,16 @@ local
         val plan = List.foldl addReserved plan reserved
 
         val plan =
-            List.foldl addArticle plan (PackageInformation.articleFiles info)
+            List.foldl addArticle plan
+              (PackageInformation.articleFiles info)
 
         val plan =
-            List.foldl addExtra plan (PackageInformation.extraFiles info)
+            List.foldl addInterpretation plan
+              (PackageInformation.interpretationFiles info)
+
+        val plan =
+            List.foldl addExtra plan
+              (PackageInformation.extraFiles info)
       in
         plan
       end;
@@ -1258,6 +1273,85 @@ local
         | _ => thy
       end;
 
+  fun copyInterpretationFile sys srcDir pkg {filename = srcFilename} =
+      let
+(*OpenTheoryTrace1
+        val () =
+            Print.trace Print.ppString
+              "Repository.stageTheory.copyInterpretationFile: srcFilename"
+              srcFilename
+*)
+        val srcFilename = OS.Path.concat (srcDir,srcFilename)
+
+        val {filename = intFilename} =
+            PackageInterpretation.normalizeFilename {filename = srcFilename}
+
+        val {filename = destFilename} =
+            Package.joinDirectory pkg {filename = intFilename}
+
+        val {cp} = RepositorySystem.cp sys
+
+        val cmd = cp ^ " " ^ srcFilename ^ " " ^ destFilename
+
+(*OpenTheoryTrace1
+        val () = trace (cmd ^ "\n")
+*)
+        val () =
+            if OS.Process.isSuccess (OS.Process.system cmd) then ()
+            else raise Error "copying interpretation file failed"
+      in
+        {filename = intFilename}
+      end;
+
+  fun copyInterpretationFilesInterpretation sys srcDir pkg int =
+      let
+        val PackageInterpretation.Interpretation {rewrites,filenames} = int
+
+        val filenames =
+            List.map (copyInterpretationFile sys srcDir pkg) filenames
+      in
+        PackageInterpretation.Interpretation
+          {rewrites = rewrites,
+           filenames = filenames}
+      end;
+
+  fun copyInterpretationFilesTheory sys srcDir pkg thy =
+      let
+        val PackageTheory.Theory {name,imports,node} = thy
+      in
+        case node of
+          PackageTheory.Article {interpretation = int, filename} =>
+          let
+            val int = copyInterpretationFilesInterpretation sys srcDir pkg int
+
+            val node =
+                PackageTheory.Article
+                  {interpretation = int,
+                   filename = filename}
+          in
+            PackageTheory.Theory
+              {name = name,
+               imports = imports,
+               node = node}
+          end
+        | PackageTheory.Include {interpretation = int, package, checksum} =>
+          let
+            val int = copyInterpretationFilesInterpretation sys srcDir pkg int
+
+            val node =
+                PackageTheory.Include
+                  {interpretation = int,
+                   package = package,
+                   checksum = checksum}
+          in
+            PackageTheory.Theory
+              {name = name,
+               imports = imports,
+               node = node}
+          end
+        | PackageTheory.Union => thy
+      end;
+
   fun copyExtraFile sys srcDir pkg tag =
       case PackageTag.toExtra tag of
         NONE => tag
@@ -1300,6 +1394,19 @@ local
             PackageInformation.dest info
 
         val theories = List.map (copyArticle srcDir pkg) theories
+      in
+        PackageInformation.mk
+          (PackageInformation.Information'
+             {tags = tags, theories = theories})
+      end;
+
+  fun copyInterpretationFiles sys srcDir pkg info =
+      let
+        val PackageInformation.Information' {tags,theories} =
+            PackageInformation.dest info
+
+        val theories =
+            List.map (copyInterpretationFilesTheory sys srcDir pkg) theories
       in
         PackageInformation.mk
           (PackageInformation.Information'
@@ -1374,6 +1481,10 @@ in
           (* Copy the articles over *)
 
           val info = copyArticles srcDir pkg info
+
+          (* Copy the interpretation files over *)
+
+          val info = copyInterpretationFiles sys srcDir pkg info
 
           (* Copy the extra files over *)
 

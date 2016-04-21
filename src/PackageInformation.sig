@@ -102,6 +102,12 @@ val emptyTheories : information -> bool
 val articleFiles : information -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
+(* Package interpretation files.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val interpretationFiles : information -> {filename : string} list
+
+(* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

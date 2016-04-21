@@ -7,6 +7,18 @@ signature PackageInterpretation =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* Interpretation filenames.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val mkFilename : {base : string} -> {filename : string}
+
+val destFilename : {filename : string} -> {base : string} option
+
+val isFilename : {filename : string} -> bool
+
+val normalizeFilename : {filename : string} -> {filename : string}
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory package interpretations.                                 *)
 (* ------------------------------------------------------------------------- *)
 
@@ -14,6 +26,14 @@ datatype interpretation =
     Interpretation of
       {rewrites : Interpretation.rewrite list,
        filenames : {filename : string} list}
+
+(* ------------------------------------------------------------------------- *)
+(* Interpretation files.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val filenames : interpretation -> {filename : string} list
+
+val filenamesList : interpretation list -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)

@@ -192,11 +192,15 @@ fun requires pkg = PackageInformation.requires (information pkg);
 
 fun articleFiles pkg = PackageInformation.articleFiles (information pkg);
 
+fun interpretationFiles pkg =
+    PackageInformation.interpretationFiles (information pkg);
+
 fun extraFiles pkg = PackageInformation.extraFiles (information pkg);
 
 fun allFiles pkg =
     theoryFile pkg ::
     articleFiles pkg @
+    interpretationFiles pkg @
     List.map PackageExtra.filename (extraFiles pkg);
 
 (* ------------------------------------------------------------------------- *)
@@ -261,8 +265,8 @@ fun unpackTarball pkg {minimal} =
       val () = PackageTarball.extract tar [theoryFile]
 
       val arts = articleFiles pkg
-
-      val exts = List.map PackageExtra.filename (extraFiles pkg)
+      and ints = interpretationFiles pkg
+      and exts = List.map PackageExtra.filename (extraFiles pkg)
 
       val () =
           let
@@ -289,7 +293,7 @@ fun unpackTarball pkg {minimal} =
             ()
           end
 
-      val files = if minimal then arts else arts @ exts
+      val files = arts @ ints @ (if minimal then [] else exts)
 
       val () = PackageTarball.extract tar files
     in

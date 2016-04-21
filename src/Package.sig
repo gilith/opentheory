@@ -90,6 +90,8 @@ val theoryFile : package -> {filename : string}
 
 val articleFiles : package -> {filename : string} list
 
+val interpretationFiles : package -> {filename : string} list
+
 val extraFiles : package -> PackageExtra.extra list
 
 val allFiles : package -> {filename : string} list

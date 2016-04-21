@@ -69,6 +69,16 @@ val article : theory -> {filename : string} option
 val articles : theory list -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
+(* Interpretations.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val interpretationNode : node -> PackageInterpretation.interpretation option
+
+val interpretation : theory -> PackageInterpretation.interpretation option
+
+val interpretations : theory list -> PackageInterpretation.interpretation list
+
+(* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
