@@ -138,6 +138,7 @@ SRC = \
   src/PackageVersion.sig src/PackageVersion.sml \
   src/PackageNameVersion.sig src/PackageNameVersion.sml \
   src/PackageAuthor.sig src/PackageAuthor.sml \
+  src/PackageInterpretation.sig src/PackageInterpretation.sml \
   src/PackageSummary.sig src/PackageSummary.sml \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/PackageExtra.sig src/PackageExtra.sml \

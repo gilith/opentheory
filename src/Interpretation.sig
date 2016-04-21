@@ -28,6 +28,8 @@ val parserRewrite : (char,rewrite) Parse.parser
 
 val parserRewriteList : (char, rewrite list) Parse.parser
 
+val fromTextFileRewriteList : {filename : string} -> rewrite list
+
 (* ------------------------------------------------------------------------- *)
 (* A type of interpretations.                                                *)
 (* ------------------------------------------------------------------------- *)

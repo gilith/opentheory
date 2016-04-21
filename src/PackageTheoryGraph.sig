@@ -7,28 +7,43 @@ signature PackageTheoryGraph =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of package theory graphs.                                          *)
+(* Topological sort of theory blocks to respect union blocks.                *)
 (* ------------------------------------------------------------------------- *)
 
-type graph
-
-val theories : graph -> PackageTheory.theory list
+val sortUnion : PackageTheory.theory list -> PackageTheory.theory list
 
 (* ------------------------------------------------------------------------- *)
-(* The constructor removes dead theory imports and blocks.                   *)
+(* Topological sort of theory blocks to respect import declarations.         *)
 (* ------------------------------------------------------------------------- *)
 
-val mk :
+val sortImports : PackageTheory.theory list -> PackageTheory.theory list
+
+(* ------------------------------------------------------------------------- *)
+(* Remove dead theory blocks and import declarations.                        *)
+(* ------------------------------------------------------------------------- *)
+
+val removeDead :
     {finder : PackageFinder.finder,
      directory : string,
-     theories : PackageTheory.theory list} -> graph
+     outputWarning : bool,
+     theories : PackageTheory.theory list} -> PackageTheory.theory list
 
 (* ------------------------------------------------------------------------- *)
-(* Unwind mutually recursive package theory graphs.                          *)
+(* Add checksums to package include theory blocks.                           *)
 (* ------------------------------------------------------------------------- *)
 
-val unwind : graph -> graph
+val addChecksums :
+    {finder : PackageFinder.finder,
+     theories : PackageTheory.theory list} -> PackageTheory.theory list
 
-val unwound : graph -> bool
+(* ------------------------------------------------------------------------- *)
+(* Clean up theory blocks (addChecksums o removeDead o sortImports).         *)
+(* ------------------------------------------------------------------------- *)
+
+val clean :
+    {finder : PackageFinder.finder,
+     directory : string,
+     outputWarning : bool,
+     theories : PackageTheory.theory list} -> PackageTheory.theory list
 
 end

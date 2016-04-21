@@ -31,10 +31,10 @@ type name = PackageName.name;
 
 datatype node =
     Article of
-      {interpret : Interpretation.interpretation * {filename : string} list,
+      {interpretation : PackageInterpretation.interpretation,
        filename : string}
   | Include of
-      {interpret : Interpretation.interpretation * {filename : string} list,
+      {interpretation : PackageInterpretation.interpretation,
        package : PackageNameVersion.nameVersion,
        checksum : Checksum.checksum option}
   | Union;
@@ -96,20 +96,11 @@ fun includes thys = List.mapPartial destInclude thys;
 
 fun updateIncludeNode update node =
     case node of
-      Include
-        {interpret = i,
-         interpretation = f,
-         package = nv,
-         checksum = c} =>
+      Include {interpretation = i, package = nv, checksum = c} =>
       (case update nv c of
          SOME (nv,c) =>
          let
-           val node =
-               Include
-                 {interpret = i,
-                  interpretation = f,
-                  package = nv,
-                  checksum = c}
+           val node = Include {interpretation = i, package = nv, checksum = c}
          in
            SOME node
          end
@@ -331,13 +322,9 @@ datatype constraint =
   | InterpretationConstraint of {filename : string}
   | PackageConstraint of PackageNameVersion.nameVersion;
 
-fun mkArticleConstraint f = ArticleConstraint {filename = f};
-
-fun mkInterpretationConstraint f = InterpretationConstraint {filename = f};
-
 fun destArticleConstraint c =
     case c of
-      ArticleConstraint {filename} => SOME filename
+      ArticleConstraint f => SOME f
     | _ => NONE;
 
 fun destChecksumConstraint c =
@@ -357,7 +344,7 @@ fun destInterpretConstraint c =
 
 fun destInterpretationConstraint c =
     case c of
-      InterpretationConstraint {filename} => SOME filename
+      InterpretationConstraint f => SOME f
     | _ => NONE;
 
 fun destPackageConstraint c =
@@ -377,6 +364,18 @@ fun destInterpretationConstraints cs =
     List.mapPartial destInterpretationConstraint cs;
 
 fun destPackageConstraints cs = List.mapPartial destPackageConstraint cs;
+
+fun mkInterpretation rewrites filenames =
+    PackageInterpretation.Interpretation
+      {rewrites = rewrites,
+       filenames = filenames};
+
+fun destInterpretation int =
+    let
+      val PackageInterpretation.Interpretation {rewrites,filenames} = int
+    in
+      (rewrites,filenames)
+    end;
 
 fun mkTheory (name,cs) =
     let
@@ -412,18 +411,17 @@ fun mkTheory (name,cs) =
             raise Error "multiple articles in theory block"
           | ([], _ :: _ :: _) =>
             raise Error "multiple packages in theory block"
-          | ([filename],[]) =>
+          | ([{filename = f}],[]) =>
             let
               val () =
                   if List.null chks then ()
                   else raise Error "checksum in article theory block"
 
-              val int = Interpretation.fromRewriteList rws
+              val i = mkInterpretation rws ifs
             in
               Article
-                {interpret = int,
-                 interpretation = ifs,
-                 filename = filename}
+                {interpretation = i,
+                 filename = f}
             end
           | ([],[p]) =>
             let
@@ -434,11 +432,10 @@ fun mkTheory (name,cs) =
                   | _ :: _ :: _ =>
                     raise Error "multiple checksums in package theory block"
 
-              val int = Interpretation.fromRewriteList rws
+              val i = mkInterpretation rws ifs
             in
               Include
-                {interpret = int,
-                 interpretation = ifs,
+                {interpretation = i,
                  package = p,
                  checksum = c}
             end
@@ -457,21 +454,17 @@ fun destTheory thy =
 
       val ncs =
           case node of
-            Article {interpret = int, interpretation = ifs, filename = f} =>
+            Article {interpretation = int, filename = f} =>
             let
-              val rws = Interpretation.toRewriteList int
+              val (rws,ifs) = destInterpretation int
             in
               List.map InterpretConstraint rws @
-              List.map mkInterpretationConstraint ifs @
-              [mkArticleConstraint f]
+              List.map InterpretationConstraint ifs @
+              [ArticleConstraint {filename = f}]
             end
-          | Include
-              {interpret = int,
-               interpretation = ifs,
-               package = p,
-               checksum = c} =>
+          | Include {interpretation = int, package = p, checksum = c} =>
             let
-              val rws = Interpretation.toRewriteList int
+              val (rws,ifs) = destInterpretation int
 
               val cs =
                   case c of
@@ -479,7 +472,7 @@ fun destTheory thy =
                   | NONE => []
             in
               List.map InterpretConstraint rws @
-              List.map mkInterpretationConstraint ifs @
+              List.map InterpretationConstraint ifs @
               [PackageConstraint p] @
               List.map ChecksumConstraint cs
             end
@@ -500,6 +493,7 @@ and ppChecksumKeyword = Print.ppString checksumKeywordString
 and ppCloseBlock = Print.ppChar closeBlockChar
 and ppImportKeyword = Print.ppString importKeywordString
 and ppInterpretKeyword = Print.ppString interpretKeywordString
+and ppInterpretationKeyword = Print.ppString interpretationKeywordString
 and ppOpenBlock = Print.ppChar openBlockChar
 and ppPackageKeyword = Print.ppString packageKeywordString
 and ppQuote = Print.ppChar quoteChar
@@ -538,6 +532,8 @@ in
         ppNameValue ppImportKeyword (PackageName.pp r)
       | InterpretConstraint r =>
         ppNameValue ppInterpretKeyword (Interpretation.ppRewrite r)
+      | InterpretationConstraint f =>
+        ppNameValue ppInterpretationKeyword (ppFilename f)
       | PackageConstraint p =>
         ppNameValue ppPackageKeyword (PackageNameVersion.pp p);
 end;
@@ -600,6 +596,7 @@ local
   and closeBlockParser = exactChar closeBlockChar
   and importKeywordParser = exactString importKeywordString
   and interpretKeywordParser = exactString interpretKeywordString
+  and interpretationKeywordParser = exactString interpretationKeywordString
   and openBlockParser = exactChar openBlockChar
   and packageKeywordParser = exactString packageKeywordString
   and quoteParser = exactChar quoteChar
@@ -637,18 +634,26 @@ local
        Interpretation.parserRewrite) >>
       (fn ((),((),((),((),r)))) => InterpretConstraint r);
 
+  val interpretationConstraintParser =
+      (interpretationKeywordParser ++ manySpace ++
+       separatorParser ++ manySpace ++
+       filenameParser) >>
+      (fn ((),((),((),((),f)))) => InterpretationConstraint f);
+
   val packageConstraintParser =
       (packageKeywordParser ++ manySpace ++
        separatorParser ++ manySpace ++
        PackageNameVersion.parser) >>
       (fn ((),((),((),((),p)))) => PackageConstraint p);
 
+  (* Keep in reverse order to ensure prefix keywords appear later *)
   val constraintParser =
-      articleConstraintParser ||
-      checksumConstraintParser ||
-      importConstraintParser ||
+      packageConstraintParser ||
+      interpretationConstraintParser ||
       interpretConstraintParser ||
-      packageConstraintParser;
+      importConstraintParser ||
+      checksumConstraintParser ||
+      articleConstraintParser;
 
   val constraintSpaceParser = constraintParser ++ manySpace >> fst;
 

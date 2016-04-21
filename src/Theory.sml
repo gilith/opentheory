@@ -23,15 +23,14 @@ and theory' =
     Theory' of
       {imports : theory list,
        node : node,
+       interpretation : Interpretation.interpretation,
        article : Article.article}
 
 and node =
     Article of
-      {interpretation : Interpretation.interpretation,
-       filename : string}
+      {filename : string}
   | Package of
-      {interpretation : Interpretation.interpretation,
-       package : PackageNameVersion.nameVersion,
+      {package : PackageNameVersion.nameVersion,
        checksum : Checksum.checksum option,
        nested : nested}
   | Union
@@ -100,6 +99,13 @@ fun imports thy =
 fun node thy =
     let
       val Theory' {node = x, ...} = dest thy
+    in
+      x
+    end;
+
+fun interpretation thy =
+    let
+      val Theory' {interpretation = x, ...} = dest thy
     in
       x
     end;
@@ -193,24 +199,6 @@ fun isPrimitiveNode node =
     | Union => false;
 
 fun isPrimitive thy = isPrimitiveNode (node thy);
-
-(* ------------------------------------------------------------------------- *)
-(* Creating PackageTheory nodes.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun toPackageTheoryNode node =
-    case node of
-      Article {interpretation,filename} =>
-      PackageTheory.Article
-        {interpretation = interpretation,
-         filename = filename}
-    | Package {interpretation,package,checksum,...} =>
-      PackageTheory.Include
-        {interpretation = interpretation,
-         package = package,
-         checksum = checksum}
-    | Union =>
-      PackageTheory.Union;
 
 (* ------------------------------------------------------------------------- *)
 (* Theory summaries.                                                         *)

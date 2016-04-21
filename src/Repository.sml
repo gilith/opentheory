@@ -1318,7 +1318,7 @@ local
              {tags = tags, theories = theories})
       end;
 
-  fun checkTheory fndr pkg info =
+  fun cleanTheory fndr pkg info =
       let
 (*OpenTheoryTrace1
         val () = trace "Repository.stageTheory.checkTheory\n"
@@ -1328,15 +1328,12 @@ local
 
         val {directory} = Package.directory pkg
 
-        val graph =
-            PackageTheoryGraph.mk
+        val theories =
+            PackageTheoryGraph.clean
               {finder = fndr,
                directory = directory,
+               outputWarning = true,
                theories = theories}
-
-        val graph = PackageTheoryGraph.unwind graph
-
-        val theories = PackageTheoryGraph.theories graph
       in
         PackageInformation.mk
           (PackageInformation.Information'
@@ -1382,9 +1379,9 @@ in
 
           val info = copyExtraFiles sys srcDir pkg info
 
-          (* Check the package theory *)
+          (* Clean up the package theory *)
 
-          val info = checkTheory fndr pkg info
+          val info = cleanTheory fndr pkg info
 
           (* Write the new theory file *)
 

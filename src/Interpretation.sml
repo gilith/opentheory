@@ -12,9 +12,19 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val constString = "const"
+val commentChar = #"#"
+and constString = "const"
 and rewriteString = "as"
 and typeOpString = "type";
+
+(* ------------------------------------------------------------------------- *)
+(* Utility functions.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun isCommentLine l =
+    case List.find (not o Char.isSpace) l of
+      NONE => true
+    | SOME c => c = commentChar;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of rewrite rules for names.                                        *)
@@ -101,6 +111,33 @@ in
 
   val parserRewriteList = manySpace ++ rewriteListSpaceParser >> snd;
 end;
+
+fun fromTextFileRewriteList {filename} =
+    let
+      (* Estimating parse error line numbers *)
+
+      val lines = Stream.fromTextFile {filename = filename}
+
+      val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
+    in
+      (let
+         (* The character stream *)
+
+         val chars = Stream.filter (not o isCommentLine) chars
+
+         val chars = Parse.everything Parse.any chars
+
+         (* The interpretation stream *)
+
+         val rws = Parse.everything parserRewrite' chars
+       in
+         Stream.toList rws
+       end
+       handle Parse.NoParse => raise Error "parse error")
+      handle Error err =>
+        raise Error ("error in interpretation file \"" ^ filename ^ "\" " ^
+                     parseErrorLocation () ^ "\n" ^ err)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of interpretations (bad pun on interpreting art(icle) files).      *)
@@ -376,40 +413,9 @@ end;
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun isCommentLine l =
-    case List.find (not o Char.isSpace) l of
-      NONE => true
-    | SOME #"#" => true
-    | _ => false;
-
 fun toTextFile {interpretation,filename} =
     Stream.toTextFile {filename = filename} (Print.toStream pp interpretation);
 
-fun fromTextFile {filename} =
-    let
-      (* Estimating parse error line numbers *)
-
-      val lines = Stream.fromTextFile {filename = filename}
-
-      val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
-    in
-      (let
-         (* The character stream *)
-
-         val chars = Stream.filter (not o isCommentLine) chars
-
-         val chars = Parse.everything Parse.any chars
-
-         (* The interpretation stream *)
-
-         val rws = Parse.everything parserRewrite' chars
-       in
-         fromRewriteStream rws
-       end
-       handle Parse.NoParse => raise Error "parse error")
-      handle Error err =>
-        raise Error ("error in interpretation file \"" ^ filename ^ "\" " ^
-                     parseErrorLocation () ^ "\n" ^ err)
-    end;
+fun fromTextFile filename = fromRewriteList (fromTextFileRewriteList filename);
 
 end

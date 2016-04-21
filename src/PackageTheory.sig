@@ -14,10 +14,10 @@ type name = PackageName.name
 
 datatype node =
     Article of
-      {interpretation : Interpretation.interpretation,
+      {interpretation : PackageInterpretation.interpretation,
        filename : string}
   | Include of
-      {interpretation : Interpretation.interpretation,
+      {interpretation : PackageInterpretation.interpretation,
        package : PackageNameVersion.nameVersion,
        checksum : Checksum.checksum option}
   | Union

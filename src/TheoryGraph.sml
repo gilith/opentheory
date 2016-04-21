@@ -453,10 +453,11 @@ fun match graph spec =
           end
 
       fun matchInt thy =
-          case Theory.node thy of
-            Theory.Package {interpretation = int', ...} =>
+          let
+            val int' = Theory.interpretation thy
+          in
             Interpretation.equal int int'
-          | _ => raise Bug "TheoryGraph.match.matchInt"
+          end
 
       fun matchThy thy =
           matchChk thy andalso
@@ -479,14 +480,17 @@ fun importNode finder graph info =
           let
             val imports = TheorySet.union imports nodeImports
 
-            val interpretation = Interpretation.compose int interpretation
-
-            val node =
-                Theory.Article
-                  {interpretation = interpretation,
-                   filename = f}
-
             val filename = OS.Path.concat (directory,f)
+
+            val node = Theory.Article {filename = f}
+
+            val interpretation =
+                let
+                  val realint =
+                      PackageInterpretation.realize {directory = directory} int
+                in
+                  Interpretation.compose realint interpretation
+                end
 
             val article =
                 Article.fromTextFile
@@ -500,6 +504,7 @@ fun importNode finder graph info =
             val thy' =
                 Theory.Theory'
                   {imports = imports,
+                   interpretation = interpretation,
                    node = node,
                    article = article}
 
@@ -510,11 +515,19 @@ fun importNode finder graph info =
             (graph,thy)
           end
         | PackageTheory.Include
-            {interpretation = int, package = namever, checksum = chk} =>
+            {interpretation = int,
+             package = namever,
+             checksum = chk} =>
           let
             val imports = TheorySet.union imports nodeImports
 
-            val interpretation = Interpretation.compose int interpretation
+            val interpretation =
+                let
+                  val realint =
+                      PackageInterpretation.realize {directory = directory} int
+                in
+                  Interpretation.compose realint interpretation
+                end
 
             val spec =
                 Specification
@@ -536,6 +549,7 @@ fun importNode finder graph info =
             val thy' =
                 Theory.Theory'
                   {imports = imports,
+                   interpretation = interpretation,
                    node = node,
                    article = article}
 
@@ -623,8 +637,7 @@ and importPackageInformation finder graph data =
 
       val node =
           Theory.Package
-            {interpretation = interpretation,
-             package = namever,
+            {package = namever,
              checksum = chk,
              nested = nestedEnvironment env}
 
@@ -637,6 +650,7 @@ and importPackageInformation finder graph data =
       val thy' =
           Theory.Theory'
             {imports = imports,
+             interpretation = interpretation,
              node = node,
              article = article}
 

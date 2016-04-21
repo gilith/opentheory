@@ -20,11 +20,9 @@ datatype nested = Nested of (PackageTheory.name * theory) list
 
 datatype node =
     Article of
-      {interpretation : Interpretation.interpretation,
-       filename : string}
+      {filename : string}
   | Package of
-      {interpretation : Interpretation.interpretation,
-       package : PackageNameVersion.nameVersion,
+      {package : PackageNameVersion.nameVersion,
        checksum : Checksum.checksum option,
        nested : nested}
   | Union
@@ -32,6 +30,7 @@ datatype node =
 datatype theory' =
     Theory' of
       {imports : theory list,
+       interpretation : Interpretation.interpretation,
        node : node,
        article : Article.article}
 
@@ -40,6 +39,8 @@ val mk : theory' -> theory
 val dest : theory -> theory'
 
 val imports : theory -> theory list
+
+val interpretation : theory -> Interpretation.interpretation
 
 val node : theory -> node
 
@@ -88,12 +89,6 @@ val mainNested : nested -> theory
 val isPrimitiveNode : node -> bool
 
 val isPrimitive : theory -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* Creating PackageTheory nodes.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-val toPackageTheoryNode : node -> PackageTheory.node
 
 (* ------------------------------------------------------------------------- *)
 (* Theory summaries.                                                         *)

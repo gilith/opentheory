@@ -1046,7 +1046,7 @@ in
         description = "upgrade theory source to latest versions",
         processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
        {switches = ["--preserve-theory"], arguments = [],
-        description = "do not optimize theory source",
+        description = "do not clean up and optimize theory source",
         processor = beginOpt endOpt (fn _ => preserveTheoryInfo := true)},
        {switches = ["--clear-local-names"], arguments = [],
         description = "clear names of symbols local to the theory",
@@ -1828,15 +1828,14 @@ local
             let
               val fndr = finder ()
 
-              val graph =
-                  PackageTheoryGraph.mk
+              val thys =
+                  PackageTheoryGraph.clean
                     {finder = fndr,
                      directory = dir,
+                     outputWarning = true,
                      theories = thys}
-
-              val graph = PackageTheoryGraph.unwind graph
             in
-              SOME (PackageTheoryGraph.theories graph)
+              SOME thys
             end;
 
     fun computeTheories () =
