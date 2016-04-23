@@ -1788,9 +1788,12 @@ local
               | SOME info =>
                 let
                   val arts = PackageInformation.articleFiles info
-                  and extras = PackageInformation.extraFiles info
+                  and ints = PackageInformation.interpretationFiles info
+                  and exts = PackageInformation.extraFiles info
+
+                  val exts = List.map PackageExtra.filename exts
                 in
-                  SOME (thy :: arts @ List.map PackageExtra.filename extras)
+                  SOME (thy :: arts @ ints @ exts)
                 end;
   in
     val getFiles = getCached cacheFiles computeFiles;
