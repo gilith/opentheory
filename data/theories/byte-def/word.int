@@ -1,0 +1,33 @@
+###############################################################################
+# INTERPRETATIONS FOR INSTANTIATING THE PARAMETRIC WORD THEORY
+# Joe Leslie-Hurd
+###############################################################################
+
+# Data
+
+# Data.Word
+
+type "Data.Word.word" as "Data.Byte.byte"
+
+const "Data.Word.*" as "Data.Byte.*"
+const "Data.Word.+" as "Data.Byte.+"
+const "Data.Word.-" as "Data.Byte.-"
+const "Data.Word.<" as "Data.Byte.<"
+const "Data.Word.<=" as "Data.Byte.<="
+const "Data.Word.^" as "Data.Byte.^"
+const "Data.Word.~" as "Data.Byte.~"
+const "Data.Word.and" as "Data.Byte.and"
+const "Data.Word.bit" as "Data.Byte.bit"
+const "Data.Word.fromNatural" as "Data.Byte.fromNatural"
+const "Data.Word.modulus" as "Data.Byte.modulus"
+const "Data.Word.not" as "Data.Byte.not"
+const "Data.Word.or" as "Data.Byte.or"
+const "Data.Word.random" as "Data.Byte.random"
+const "Data.Word.shiftLeft" as "Data.Byte.shiftLeft"
+const "Data.Word.shiftRight" as "Data.Byte.shiftRight"
+const "Data.Word.toNatural" as "Data.Byte.toNatural"
+const "Data.Word.width" as "Data.Byte.width"
+const "Data.Word.Bits.compare" as "Data.Byte.Bits.compare"
+const "Data.Word.Bits.fromWord" as "Data.Byte.Bits.fromByte"
+const "Data.Word.Bits.normal" as "Data.Byte.Bits.normal"
+const "Data.Word.Bits.toWord" as "Data.Byte.Bits.toByte"
