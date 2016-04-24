@@ -272,7 +272,7 @@ fun unpackTarball pkg {minimal} =
           let
             fun add ({filename},set) = StringSet.add set filename
 
-            val filel = arts @ exts
+            val filel = arts @ ints @ exts
 
             val files = List.foldl add StringSet.empty filel
 
