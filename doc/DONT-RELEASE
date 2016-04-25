@@ -1,6 +1,7 @@
 .git
 .gitignore
 opentheory/Makefile.dev
+opentheory/README.md
 opentheory/data
 opentheory/doc/DONT-RELEASE
 opentheory/doc/IMPORT-METIS

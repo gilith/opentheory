@@ -11,19 +11,19 @@
 
 .PHONY: default
 default:
-	@if command -v mosmlc > /dev/null ; then $(MAKE) mosml ; else if command -v mlton > /dev/null ; then $(MAKE) mlton ; else if command -v polyc > /dev/null ; then $(MAKE) polyml ; else echo "ERROR: No ML found on path: install either MLton, Poly/ML or Moscow ML." ; exit 1 ; fi ; fi ; fi
+	@if command -v mlton > /dev/null ; then $(MAKE) mlton ; else if command -v polyc > /dev/null ; then $(MAKE) polyml ; else if command -v mosmlc > /dev/null ; then $(MAKE) mosml ; else echo "ERROR: No ML found on path: install either MLton, Poly/ML or Moscow ML." ; exit 1 ; fi ; fi ; fi
 
 ###############################################################################
 # Cleaning temporary files.
 ###############################################################################
 
 TEMP = \
-  $(MOSML_TARGETS) \
-  bin/mosml/*.sml bin/mosml/*.ui bin/mosml/*.uo bin/mosml/a.out \
   $(MLTON_TARGETS) \
   bin/mlton/*.sml bin/mlton/*.mlb \
   $(POLYML_TARGETS) \
-  bin/polyml/*.sml bin/polyml/*.log
+  bin/polyml/*.sml bin/polyml/*.log \
+  $(MOSML_TARGETS) \
+  bin/mosml/*.sml bin/mosml/*.ui bin/mosml/*.uo bin/mosml/a.out
 
 .PHONY: clean
 clean:
@@ -154,32 +154,6 @@ MLPP = scripts/mlpp
 MLPP_OPTS =
 
 ###############################################################################
-# Building using Moscow ML.
-###############################################################################
-
-MOSMLC = mosmlc -toplevel -q
-
-MOSML_SRC = \
-  src/Portable.sig src/PortableMosml.sml \
-  $(SRC)
-
-MOSML_TARGETS = \
-  bin/mosml/opentheory
-
-include bin/mosml/Makefile.src
-
-.PHONY: mosml-info
-mosml-info:
-	@echo
-	@echo '+---------------------------------------+'
-	@echo '| Build and test the Moscow ML programs |'
-	@echo '+---------------------------------------+'
-	@echo
-
-.PHONY: mosml
-mosml: mosml-info $(MOSML_OBJ) $(MOSML_TARGETS) test
-
-###############################################################################
 # Building using MLton.
 ###############################################################################
 
@@ -191,11 +165,9 @@ MLTON_SRC = \
   src/Portable.sig src/PortableMlton.sml \
   $(SRC)
 
-OPENTHEORY = bin/mlton/opentheory
-
 MLTON_TARGETS = \
   bin/mlton/selftest \
-  $(OPENTHEORY)
+  bin/mlton/opentheory
 
 bin/mlton/%.sml: $(MLTON_SRC) src/%.sml
 	@$(MLPP) $(MLPP_OPTS) -c mlton $^ > $@
@@ -269,6 +241,32 @@ polyml-info:
 .PHONY: polyml
 polyml: polyml-info $(POLYML_TARGETS)
 	$(MAKE) -C test polyml
+
+###############################################################################
+# Building using Moscow ML.
+###############################################################################
+
+MOSMLC = mosmlc -toplevel -q
+
+MOSML_SRC = \
+  src/Portable.sig src/PortableMosml.sml \
+  $(SRC)
+
+MOSML_TARGETS = \
+  bin/mosml/opentheory
+
+include bin/mosml/Makefile.src
+
+.PHONY: mosml-info
+mosml-info:
+	@echo
+	@echo '+---------------------------------------+'
+	@echo '| Build and test the Moscow ML programs |'
+	@echo '+---------------------------------------+'
+	@echo
+
+.PHONY: mosml
+mosml: mosml-info $(MOSML_OBJ) $(MOSML_TARGETS) test
 
 ###############################################################################
 # Development.
