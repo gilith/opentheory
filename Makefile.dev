@@ -50,13 +50,11 @@ MLTON_OPTS += -verbose 1 -keep ssa -keep ssa2
 # Moving source files around.
 ###############################################################################
 
-COPY = scripts/copy_src
+COPY = cp -v
 
-MLIMPORT = scripts/mlimport
+src/selftest.sml: test/test.sml ; @$(COPY) $< $@
 
-src/selftest.sml: test/test.sml $(COPY) ; @$(COPY) $< $@
-
-src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
+src/benchmark.sml: src/opentheory.sml ; @$(COPY) $< $@
 
 ###############################################################################
 # Importing the basic library
@@ -66,46 +64,48 @@ BASIC_LIBRARY = ../basic
 
 .PHONY: import-basic
 import-basic:
-	$(COPY) $(BASIC_LIBRARY)/src/Config.sig src/Config.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Config.sml src/Config.sml
-	$(COPY) $(BASIC_LIBRARY)/src/ElementSet.sig src/ElementSet.sig
-	$(COPY) $(BASIC_LIBRARY)/src/ElementSet.sml src/ElementSet.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Heap.sig src/Heap.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Heap.sml src/Heap.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Html.sig src/Html.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Html.sml src/Html.sml
-	$(COPY) $(BASIC_LIBRARY)/src/KeyMap.sig src/KeyMap.sig
-	$(COPY) $(BASIC_LIBRARY)/src/KeyMap.sml src/KeyMap.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Lazy.sig src/Lazy.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Lazy.sml src/Lazy.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Map.sig src/Map.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Map.sml src/Map.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Options.sig src/Options.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Options.sml src/Options.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Ordered.sig src/Ordered.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Ordered.sml src/Ordered.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Parse.sig src/Parse.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Parse.sml src/Parse.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Portable.sig src/Portable.sig
-	$(COPY) $(BASIC_LIBRARY)/src/PortableMosml.sml src/PortableMosml.sml
-	$(COPY) $(BASIC_LIBRARY)/src/PortableMlton.sml src/PortableMlton.sml
-	$(COPY) $(BASIC_LIBRARY)/src/PortablePolyml.sml src/PortablePolyml.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Print.sig src/Print.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Print.sml src/Print.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Queue.sig src/Queue.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Queue.sml src/Queue.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Random.sig src/Random.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Random.sml src/Random.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Set.sig src/Set.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Set.sml src/Set.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Sharing.sig src/Sharing.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Sharing.sml src/Sharing.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Stream.sig src/Stream.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Stream.sml src/Stream.sml
-	$(COPY) $(BASIC_LIBRARY)/src/Useful.sig src/Useful.sig
-	$(COPY) $(BASIC_LIBRARY)/src/Useful.sml src/Useful.sml
-	$(COPY) $(BASIC_LIBRARY)/src/VertexGraph.sig src/VertexGraph.sig
-	$(COPY) $(BASIC_LIBRARY)/src/VertexGraph.sml src/VertexGraph.sml
+	@$(COPY) $(BASIC_LIBRARY)/scripts/ml_lines $(LINES)
+	@$(COPY) $(BASIC_LIBRARY)/scripts/mlpp $(MLPP)
+	@$(COPY) $(BASIC_LIBRARY)/scripts/mosml_dep $(MOSML_DEP)
+	@$(COPY) $(BASIC_LIBRARY)/scripts/release_stamp $(RELEASE_STAMP)
+	@$(COPY) $(BASIC_LIBRARY)/src/Config.sig src/Config.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Config.sml src/Config.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/ElementSet.sig src/ElementSet.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/ElementSet.sml src/ElementSet.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Heap.sig src/Heap.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Heap.sml src/Heap.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Html.sig src/Html.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Html.sml src/Html.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/KeyMap.sig src/KeyMap.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/KeyMap.sml src/KeyMap.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Lazy.sig src/Lazy.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Lazy.sml src/Lazy.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Map.sig src/Map.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Map.sml src/Map.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Options.sig src/Options.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Options.sml src/Options.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Ordered.sig src/Ordered.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Ordered.sml src/Ordered.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Parse.sig src/Parse.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Parse.sml src/Parse.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Portable.sig src/Portable.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/PortableMosml.sml src/PortableMosml.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/PortableMlton.sml src/PortableMlton.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/PortablePolyml.sml src/PortablePolyml.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Print.sig src/Print.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Print.sml src/Print.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Queue.sig src/Queue.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Queue.sml src/Queue.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Random.sig src/Random.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Random.sml src/Random.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Set.sig src/Set.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Set.sml src/Set.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Stream.sig src/Stream.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Stream.sml src/Stream.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/Useful.sig src/Useful.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/Useful.sml src/Useful.sml
+	@$(COPY) $(BASIC_LIBRARY)/src/VertexGraph.sig src/VertexGraph.sig
+	@$(COPY) $(BASIC_LIBRARY)/src/VertexGraph.sml src/VertexGraph.sml
 
 ###############################################################################
 # Export the Haskell theories.
@@ -332,24 +332,3 @@ release: release-stamp mosml mlton polyml documentation
 	ssh gilith@login.gilith.com '/bin/bash -l bin/install_opentheory'
 	@if GIT_PAGER='' git grep '[*][*][*]' ; then echo "WARNING: TODO comments discovered" ; fi
 	@echo Completed release
-
-###############################################################################
-# The build scripts.
-###############################################################################
-
-$(COPY): ../basic/scripts/copy_src
-	@cp -fv $< $@
-	@chmod -w $@
-
-$(MLIMPORT): ../basic/scripts/mlimport $(COPY) ; @$(COPY) $< $@
-
-$(MLPP): ../basic/scripts/mlpp $(COPY) ; @$(COPY) $< $@
-
-$(MOSML_DEP): ../basic/scripts/mosml_dep $(COPY) ; @$(COPY) $< $@
-
-$(LINES): ../basic/scripts/ml_lines $(COPY) ; @$(COPY) $< $@
-
-$(RELEASE_STAMP): ../basic/scripts/release_stamp $(COPY) ; @$(COPY) $< $@
-
-.PHONY: build-scripts
-build-scripts: $(COPY) $(MLPP) $(MOSML_DEP) $(LINES) $(RELEASE_STAMP)

@@ -56,7 +56,6 @@ SRC = \
   src/Set.sig src/Set.sml \
   src/ElementSet.sig src/ElementSet.sml \
   src/VertexGraph.sig src/VertexGraph.sml \
-  src/Sharing.sig src/Sharing.sml \
   src/Stream.sig src/Stream.sml \
   src/Queue.sig src/Queue.sml \
   src/Heap.sig src/Heap.sml \
