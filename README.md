@@ -1,5 +1,5 @@
-The opentheory Tool
-===================
+The opentheory Tool (Development Version)
+=========================================
 
 The [opentheory tool][] processes higher order logic theory packages in [OpenTheory][] format.
 
@@ -58,7 +58,7 @@ A simple test is to display tool help, including the options available for each 
 
     path/to/opentheory help
 
-A more serious test is to install the standard theory library using the command
+A more serious test is to install the [standard theory library][] using the command
 
     path/to/opentheory install base
 
@@ -75,6 +75,7 @@ To report bugs or obtain help, please email <opentheory-users@gilith.com>
 
 [OpenTheory]: http://www.gilith.com/research/opentheory/ "The OpenTheory project home page"
 [opentheory tool]: http://www.gilith.com/software/opentheory/ "The opentheory tool"
+[standard theory library]: http://opentheory.gilith.com/?pkg=base "The OpenTheory standard theory library"
 [MLton]: http://www.mlton.org/ "The MLton compiler"
 [Poly/ML]: http://www.polyml.org/ "The Poly/ML compiler"
 [Moscow ML]: http://www.dina.dk/~sestoft/mosml.html "The Moscow ML compiler"
