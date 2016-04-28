@@ -1475,40 +1475,48 @@ end
 val isNumeral = can destNumeral;
 
 local
-  fun digit 0 = #"0"
-    | digit 1 = #"1"
-    | digit 2 = #"2"
-    | digit 3 = #"3"
-    | digit 4 = #"4"
-    | digit 5 = #"5"
-    | digit 6 = #"6"
-    | digit 7 = #"7"
-    | digit 8 = #"8"
-    | digit 9 = #"9"
-    | digit _ = raise Bug "Term.decimalNumeral.digit";
+  fun digitToChar 0 = #"0"
+    | digitToChar 1 = #"1"
+    | digitToChar 2 = #"2"
+    | digitToChar 3 = #"3"
+    | digitToChar 4 = #"4"
+    | digitToChar 5 = #"5"
+    | digitToChar 6 = #"6"
+    | digitToChar 7 = #"7"
+    | digitToChar 8 = #"8"
+    | digitToChar 9 = #"9"
+    | digitToChar _ = raise Bug "Term.decimalNumeral.digitToChar";
 
-  fun consOpt false [] = []
-    | consOpt h t = h :: t;
-
-  fun quotRem10 (x,(q,r)) =
+  val binaryToDecimal =
       let
-        val r = 2 * r + (if x then 1 else 0)
+        fun consOpt false [] = []
+          | consOpt h t = h :: t
 
-        val y = 10 <= r
+        fun quotRem10 (b,(q,r)) =
+            let
+              val r = 2 * r + (if b then 1 else 0)
+
+              val c = 10 <= r
+            in
+              (consOpt c q, if c then r - 10 else r)
+            end
+
+        fun bin2dec ds bs =
+            if List.null bs then ds
+            else
+              let
+                val (q,r) = List.foldr quotRem10 ([],0) bs
+              in
+                bin2dec (r :: ds) q
+              end
       in
-        (consOpt y q, if y then r - 10 else r)
-      end;
-
-  fun decNum ds x =
-      let
-        val (q,r) = List.foldr quotRem10 ([],0) x
-
-        val ds = digit r :: ds
-      in
-        if List.null q then String.implode (List.rev ds) else decNum ds q
+        bin2dec []
       end;
 in
-  val decimalNumeral = decNum [];
+  fun decimalNumeral b =
+      case binaryToDecimal b of
+        [] => "0"
+      | d => String.implode (List.map digitToChar d);
 end;
 
 (* Set comprehensions *)
