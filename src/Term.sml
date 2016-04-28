@@ -1460,12 +1460,9 @@ local
 in
   fun destNumeral tm =
       let
-        val tm =
-            case total destFromNatural tm of
-              SOME t => t
-            | NONE => tm
+        val tm = Option.getOpt (total destFromNatural tm, tm)
       in
-        List.rev (destNum tm)
+        destNum tm
       end
 (*OpenTheoryDebug
       handle Error err => raise Error ("in Term.destNumeral:\n" ^ err);
