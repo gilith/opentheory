@@ -5,6 +5,8 @@ The [opentheory tool][] processes higher order logic theory packages in [OpenThe
 
 Cloning this repo will install a development version, which has active debugging code and includes a large collection of theories used for regressions. The latest official release of the opentheory tool without any extra development cruft [lives here][opentheory tool].
 
+This software is released under the [MIT License][].
+
 Install
 -------
 
@@ -79,3 +81,4 @@ To report bugs or obtain help, please email <opentheory-users@gilith.com>
 [MLton]: http://www.mlton.org/ "The MLton compiler"
 [Poly/ML]: http://www.polyml.org/ "The Poly/ML compiler"
 [Moscow ML]: http://www.dina.dk/~sestoft/mosml.html "The Moscow ML compiler"
+[MIT License]: https://github.com/gilith/opentheory/blob/master/LICENSE "MIT License"

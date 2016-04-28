@@ -360,7 +360,7 @@ val TEST_ARTICLES =
     (List.concat o List.map (fn (s,l) => List.map (fn a => (s,a)) l))
     [("natural",
       ("empty" ::
-       List.map (fn i => "example" ^ Int.toString i) (interval 1 12))),
+       List.map (fn i => "example" ^ Int.toString i) (interval 1 14))),
      ("hol-light",
       ["bool-true-def",
        "bool-true-thm",
