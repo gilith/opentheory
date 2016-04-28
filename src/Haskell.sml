@@ -3705,7 +3705,7 @@ in
 
         fun ppBasicTerm tm =
             case destNumeral tm of
-              SOME i => Print.ppInt i
+              SOME i => Print.ppString (Term.decimalNumeral i)
             | NONE =>
               case destPair exp tm of
                 SOME x_y => ppPair x_y

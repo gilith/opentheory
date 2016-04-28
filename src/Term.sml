@@ -1434,7 +1434,7 @@ local
   fun destNum tm =
       case dest tm of
         TypeTerm.Const' (c,_) =>
-        if Const.isZero c then 0
+        if Const.isZero c then []
         else raise Error "Term.destNumeral: bad const"
       | TypeTerm.App' (f,x) =>
         let
@@ -1444,14 +1444,14 @@ local
             let
               val i = destNum x
             in
-              if i > 0 then 2 * i
+              if not (List.null i) then false :: i
               else raise Error "Term.destNumeral: bit0 zero"
             end
           else if Const.isBit1 c then
             let
               val i = destNum x
             in
-              2 * i + 1
+              true :: i
             end
           else
             raise Error "Term.destNumeral: bad app"
@@ -1465,7 +1465,7 @@ in
               SOME t => t
             | NONE => tm
       in
-        destNum tm
+        List.rev (destNum tm)
       end
 (*OpenTheoryDebug
       handle Error err => raise Error ("in Term.destNumeral:\n" ^ err);
@@ -1473,6 +1473,43 @@ in
 end
 
 val isNumeral = can destNumeral;
+
+local
+  fun digit 0 = #"0"
+    | digit 1 = #"1"
+    | digit 2 = #"2"
+    | digit 3 = #"3"
+    | digit 4 = #"4"
+    | digit 5 = #"5"
+    | digit 6 = #"6"
+    | digit 7 = #"7"
+    | digit 8 = #"8"
+    | digit 9 = #"9"
+    | digit _ = raise Bug "Term.decimalNumeral.digit";
+
+  fun consOpt false [] = []
+    | consOpt h t = h :: t;
+
+  fun quotRem10 (x,(q,r)) =
+      let
+        val r = 2 * r + (if x then 1 else 0)
+
+        val y = 10 <= r
+      in
+        (consOpt y q, if y then r - 10 else r)
+      end;
+
+  fun decNum ds x =
+      let
+        val (q,r) = List.foldr quotRem10 ([],0) x
+
+        val ds = digit r :: ds
+      in
+        if List.null q then String.implode (List.rev ds) else decNum ds q
+      end;
+in
+  val decimalNumeral = decNum [];
+end;
 
 (* Set comprehensions *)
 
@@ -1618,7 +1655,7 @@ datatype grammar =
        ppNegation : Show.show -> (Const.const * Type.ty) Print.pp,
        ppInfix : Show.show -> (Const.const * Type.ty) Print.pp,
        ppBinder : Show.show -> (Const.const * Type.ty) option Print.pp,
-       ppNumeral : Show.show -> (int * Type.ty) Print.pp,
+       ppNumeral : Show.show -> (bool list * Type.ty) Print.pp,
        maximumSize : int};
 
 local
@@ -1763,7 +1800,7 @@ local
         Print.ppMap toName (ppBinderBuffer ppBind)
       end;
 
-  fun ppNumeral _ (i,_) = Print.ppInt i;
+  fun ppNumeral _ (i,_) = Print.ppString (decimalNumeral i);
 
   (* HTML *)
 
@@ -1827,7 +1864,7 @@ local
         in
           fn (i,ty) =>
              let
-               val s = Print.toLine Print.ppInt i
+               val s = decimalNumeral i
 
                val class = "numeral"
 

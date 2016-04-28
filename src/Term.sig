@@ -393,9 +393,11 @@ val isLet : term -> bool
 
 (* Numerals *)
 
-val destNumeral : term -> int
+val destNumeral : term -> bool list
 
 val isNumeral : term -> bool
+
+val decimalNumeral : bool list -> string
 
 (* Set comprehensions *)
 
@@ -441,7 +443,7 @@ datatype grammar =
        ppNegation : Show.show -> (Const.const * Type.ty) Print.pp,
        ppInfix : Show.show -> (Const.const * Type.ty) Print.pp,
        ppBinder : Show.show -> (Const.const * Type.ty) option Print.pp,
-       ppNumeral : Show.show -> (int * Type.ty) Print.pp,
+       ppNumeral : Show.show -> (bool list * Type.ty) Print.pp,
        maximumSize : int}
 
 val defaultGrammar : grammar
