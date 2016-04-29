@@ -1,5 +1,5 @@
 name: word-def
-version: 1.78
+version: 1.79
 description: Definition of word operations
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -20,18 +20,7 @@ def {
 
 modular {
   import: def
-  interpret: type "Number.Modular.modular" as "Data.Word.word"
-  interpret: const "Number.Modular.*" as "Data.Word.*"
-  interpret: const "Number.Modular.+" as "Data.Word.+"
-  interpret: const "Number.Modular.-" as "Data.Word.-"
-  interpret: const "Number.Modular.<" as "Data.Word.<"
-  interpret: const "Number.Modular.<=" as "Data.Word.<="
-  interpret: const "Number.Modular.^" as "Data.Word.^"
-  interpret: const "Number.Modular.~" as "Data.Word.~"
-  interpret: const "Number.Modular.fromNatural" as "Data.Word.fromNatural"
-  interpret: const "Number.Modular.modulus" as "Data.Word.modulus"
-  interpret: const "Number.Modular.random" as "Data.Word.random"
-  interpret: const "Number.Modular.toNatural" as "Data.Word.toNatural"
+  interpretation: "modular.int"
   package: modular-1.91
 }
 

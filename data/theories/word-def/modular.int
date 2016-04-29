@@ -1,0 +1,22 @@
+###############################################################################
+# INTERPRETATIONS FOR INSTANTIATING THE PARAMETRIC MODULAR THEORY
+# Joe Leslie-Hurd
+###############################################################################
+
+# Number
+
+# Number.Modular
+
+type "Number.Modular.modular" as "Data.Word.word"
+
+const "Number.Modular.*" as "Data.Word.*"
+const "Number.Modular.+" as "Data.Word.+"
+const "Number.Modular.-" as "Data.Word.-"
+const "Number.Modular.<" as "Data.Word.<"
+const "Number.Modular.<=" as "Data.Word.<="
+const "Number.Modular.^" as "Data.Word.^"
+const "Number.Modular.~" as "Data.Word.~"
+const "Number.Modular.fromNatural" as "Data.Word.fromNatural"
+const "Number.Modular.modulus" as "Data.Word.modulus"
+const "Number.Modular.random" as "Data.Word.random"
+const "Number.Modular.toNatural" as "Data.Word.toNatural"
