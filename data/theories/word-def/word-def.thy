@@ -1,5 +1,5 @@
 name: word-def
-version: 1.79
+version: 1.81
 description: Definition of word operations
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 modular {
   import: def
   interpretation: "modular.int"
-  package: modular-1.91
+  package: modular-1.92
 }
 
 main {

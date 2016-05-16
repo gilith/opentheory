@@ -1,5 +1,5 @@
 name: natural-bits
-version: 1.71
+version: 1.72
 description: Natural number to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

@@ -1,0 +1,21 @@
+###############################################################################
+# Interpretation for instantiating the parametric modular theory
+###############################################################################
+
+# Number
+
+# Number.GF(p)
+
+type "Number.Modular.modular" as "Number.GF(p).gfp"
+
+const "Number.Modular.*" as "Number.GF(p).*"
+const "Number.Modular.+" as "Number.GF(p).+"
+const "Number.Modular.-" as "Number.GF(p).-"
+const "Number.Modular.<" as "Number.GF(p).<"
+const "Number.Modular.<=" as "Number.GF(p).<="
+const "Number.Modular.^" as "Number.GF(p).^"
+const "Number.Modular.~" as "Number.GF(p).~"
+const "Number.Modular.fromNatural" as "Number.GF(p).fromNatural"
+const "Number.Modular.modulus" as "Number.GF(p).oddprime"
+const "Number.Modular.random" as "Number.GF(p).random"
+const "Number.Modular.toNatural" as "Number.GF(p).toNatural"

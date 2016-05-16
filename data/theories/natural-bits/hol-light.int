@@ -1,6 +1,5 @@
 ###############################################################################
-# INTERPRETATIONS FOR NATURAL NUMBER TO BIT-LIST CONVERSIONS
-# Joe Leslie-Hurd
+# HOL Light interpretation for natural number to bit-list conversions
 ###############################################################################
 
 # Number

@@ -1,6 +1,5 @@
 ###############################################################################
-# INTERPRETATIONS FOR MONTGOMERY MULTIPLICATION
-# Joe Leslie-Hurd
+# HOL Light interpretation for Montgomery multiplication
 ###############################################################################
 
 # Hardware

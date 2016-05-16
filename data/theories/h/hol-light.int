@@ -1,6 +1,5 @@
 ###############################################################################
-# INTERPRETATIONS FOR MEMORY SAFETY FOR THE H INTERFACE
-# Joe Leslie-Hurd and Rebekah Leslie-Hurd
+# HOL Light interpretation for memory safety for the H interface
 ###############################################################################
 
 # System

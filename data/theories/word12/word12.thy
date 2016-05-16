@@ -1,5 +1,5 @@
 name: word12
-version: 1.121
+version: 1.122
 description: 12-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ hol-light-int-file: hol-light.int
 hol-light-thm-file: hol-light.art
 
 def {
-  package: word12-def-1.97
+  package: word12-def-1.98
 }
 
 bits {

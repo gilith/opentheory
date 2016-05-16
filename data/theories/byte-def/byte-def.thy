@@ -1,5 +1,5 @@
 name: byte-def
-version: 1.98
+version: 1.100
 description: Definition of bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -22,7 +22,7 @@ def {
 word {
   import: def
   interpretation: "word.int"
-  package: word-1.120
+  package: word-1.121
 }
 
 main {

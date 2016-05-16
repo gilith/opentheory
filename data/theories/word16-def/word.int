@@ -1,0 +1,32 @@
+###############################################################################
+# Interpretation for instantiating the parametric word theory
+###############################################################################
+
+# Data
+
+# Data.Word
+
+type "Data.Word.word" as "Data.Word16.word16"
+
+const "Data.Word.*" as "Data.Word16.*"
+const "Data.Word.+" as "Data.Word16.+"
+const "Data.Word.-" as "Data.Word16.-"
+const "Data.Word.<" as "Data.Word16.<"
+const "Data.Word.<=" as "Data.Word16.<="
+const "Data.Word.^" as "Data.Word16.^"
+const "Data.Word.~" as "Data.Word16.~"
+const "Data.Word.and" as "Data.Word16.and"
+const "Data.Word.bit" as "Data.Word16.bit"
+const "Data.Word.fromNatural" as "Data.Word16.fromNatural"
+const "Data.Word.modulus" as "Data.Word16.modulus"
+const "Data.Word.not" as "Data.Word16.not"
+const "Data.Word.or" as "Data.Word16.or"
+const "Data.Word.random" as "Data.Word16.random"
+const "Data.Word.shiftLeft" as "Data.Word16.shiftLeft"
+const "Data.Word.shiftRight" as "Data.Word16.shiftRight"
+const "Data.Word.toNatural" as "Data.Word16.toNatural"
+const "Data.Word.width" as "Data.Word16.width"
+const "Data.Word.Bits.compare" as "Data.Word16.Bits.compare"
+const "Data.Word.Bits.fromWord" as "Data.Word16.Bits.fromWord"
+const "Data.Word.Bits.normal" as "Data.Word16.Bits.normal"
+const "Data.Word.Bits.toWord" as "Data.Word16.Bits.toWord"

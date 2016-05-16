@@ -1,5 +1,5 @@
 name: h
-version: 1.125
+version: 1.126
 description: Memory safety for the H interface
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

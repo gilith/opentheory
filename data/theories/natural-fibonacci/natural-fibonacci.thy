@@ -1,5 +1,5 @@
 name: natural-fibonacci
-version: 1.73
+version: 1.74
 description: Fibonacci numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

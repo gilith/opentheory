@@ -1,5 +1,5 @@
 name: word16
-version: 1.130
+version: 1.131
 description: 16-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ hol-light-int-file: hol-light.int
 hol-light-thm-file: hol-light.art
 
 def {
-  package: word16-def-1.97
+  package: word16-def-1.98
 }
 
 bits {
