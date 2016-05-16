@@ -21,7 +21,7 @@ val program = "opentheory";
 
 val version = "1.3";
 
-val release = " (release 20160428)";
+val release = " (release 20160515)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -2032,6 +2032,24 @@ local
   local
     val cacheObjectAssumptions : ObjectTheorems.theorems cache = ref NONE;
 
+    fun unsatisfiedAssumptions sum =
+        let
+          val ths =
+              case getRequiresTheorems () of
+                NONE => raise Error "no requires information available"
+              | SOME ths => ths
+
+          val isSatisfied =
+              case PackageTheorems.context sum ths of
+                Summary.NoContext => raise Bug "unsatisfiedAssumptions"
+              | Summary.Context {groundedExternal = _, satisfiedAssumption} =>
+                satisfiedAssumption
+
+          val seqs = Sequents.sequents (Summary.requires sum)
+        in
+          Sequents.fromSet (SequentSet.filter (not o isSatisfied) seqs)
+        end;
+
     fun computeObjectAssumptions () =
         case getBrand () of
           NONE => NONE
@@ -2040,7 +2058,9 @@ local
             NONE => NONE
           | SOME sum =>
             let
-              val seqs = Summary.requires sum
+              val seqs =
+                  if !showAssumptionsInfo then Summary.requires sum
+                  else unsatisfiedAssumptions sum
             in
               SOME (ObjectTheorems.mk brand seqs)
             end;

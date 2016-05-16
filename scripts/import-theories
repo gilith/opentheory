@@ -294,11 +294,11 @@ while (my $thy = <THEORIES>) {
 
           $cmd = "diff $tart.thms $tartnew.thms >/dev/null";
           if (execute_command ($cmd) == 0) {
-            $cmd = "$opentheory info --assumptions -o $tart.asms article:$tart";
+            $cmd = "$opentheory info --show-assumptions --assumptions -o $tart.asms article:$tart";
             (execute_command ($cmd) == 0) or
               die "$program: couldn't execute $cmd: $!\n";
 
-            $cmd = "$opentheory info --assumptions -o $tartnew.asms article:$tartnew";
+            $cmd = "$opentheory info --show-assumptions --assumptions -o $tartnew.asms article:$tartnew";
             (execute_command ($cmd) == 0) or
               die "$program: couldn't execute $cmd: $!\n";
 
