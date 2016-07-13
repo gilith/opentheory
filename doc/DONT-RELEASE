@@ -1,10 +1,10 @@
 .git
 .gitignore
+opentheory/LICENSE
 opentheory/Makefile.dev
 opentheory/README.md
 opentheory/data
 opentheory/doc/DONT-RELEASE
-opentheory/doc/IMPORT-METIS
 opentheory/doc/logo
 opentheory/release
 opentheory/repo

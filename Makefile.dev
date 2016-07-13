@@ -65,7 +65,7 @@ src/selftest.sml: test/test.sml ; @$(COPY) $< $@
 src/benchmark.sml: src/opentheory.sml ; @$(COPY) $< $@
 
 ###############################################################################
-# Importing the basic library
+# Importing the basic library.
 ###############################################################################
 
 BASIC_LIBRARY = ../basic
@@ -190,6 +190,7 @@ init:
 	@echo '| Initialize this development snapshot of opentheory |'
 	@echo '+----------------------------------------------------+'
 	@echo
+	@$(COPY) LICENSE doc/MIT-LICENSE
 	$(MAKE) test-repository
 
 ###############################################################################
@@ -333,7 +334,7 @@ release: release-stamp mosml mlton polyml documentation
 	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.png
 	cp -v doc/*.html doc/*.png $(RELEASE_DIR)/
 	cp -v doc/favicon.ico $(RELEASE_DIR)/
-	cp -v LICENSE $(RELEASE_DIR)/MIT-LICENSE
+	cp -v doc/MIT-LICENSE $(RELEASE_DIR)/
 	$(MAKE) tarball
 	rsync -azv --delete --checksum --size-only --exclude=.gitignore -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
 	ssh gilith@login.gilith.com '/bin/bash -l bin/install_opentheory'
