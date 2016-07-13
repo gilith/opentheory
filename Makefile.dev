@@ -186,9 +186,9 @@ test-repository:
 .PHONY: init
 init:
 	@echo
-	@echo '+----------------------------------------------------+'
-	@echo '| Initialize this development snapshot of opentheory |'
-	@echo '+----------------------------------------------------+'
+	@echo '+---------------------------------------------------+'
+	@echo '| Initialize this development version of opentheory |'
+	@echo '+---------------------------------------------------+'
 	@echo
 	@$(COPY) LICENSE doc/MIT-LICENSE
 	$(MAKE) test-repository
