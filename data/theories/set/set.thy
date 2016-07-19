@@ -1,5 +1,5 @@
 name: set
-version: 1.74
+version: 1.75
 description: Set types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -19,13 +19,13 @@ def {
 
 thm {
   import: def
-  package: set-thm-1.67
+  package: set-thm-1.68
 }
 
 finite {
   import: def
   import: thm
-  package: set-finite-1.57
+  package: set-finite-1.58
 }
 
 fold {
@@ -39,7 +39,7 @@ size {
   import: thm
   import: finite
   import: fold
-  package: set-size-1.56
+  package: set-size-1.57
 }
 
 main {

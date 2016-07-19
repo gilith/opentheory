@@ -1,5 +1,5 @@
 name: list
-version: 1.103
+version: 1.104
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -142,9 +142,10 @@ zip {
   import: fold
   import: length
   import: append
+  import: map
   import: nth
   import: thm
-  package: list-zip-1.30
+  package: list-zip-1.31
 }
 
 nub {

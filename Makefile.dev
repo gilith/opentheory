@@ -225,7 +225,7 @@ clean-theories: $(OPENTHEORY)
 	@scripts/reinstall-theories
 
 .PHONY: capture-theories
-capture-theories:
+capture-theories: $(OPENTHEORY)
 	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory theories
 
 .PHONY: import-theories

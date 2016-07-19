@@ -1,5 +1,5 @@
 name: list-zip
-version: 1.30
+version: 1.31
 description: The list zip functions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -9,6 +9,7 @@ requires: list-def
 requires: list-dest
 requires: list-fold
 requires: list-length
+requires: list-map
 requires: list-nth
 requires: list-thm
 requires: natural
@@ -24,7 +25,7 @@ def {
 
 thm {
   import: def
-  package: list-zip-thm-1.26
+  package: list-zip-thm-1.27
 }
 
 main {
