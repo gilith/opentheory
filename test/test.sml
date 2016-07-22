@@ -360,7 +360,7 @@ val TEST_ARTICLES =
     (List.concat o List.map (fn (s,l) => List.map (fn a => (s,a)) l))
     [("natural",
       ("empty" ::
-       List.map (fn i => "example" ^ Int.toString i) (interval 1 14))),
+       List.map (fn i => "example" ^ Int.toString i) (interval 1 15))),
      ("hol-light",
       ["bool-true-def",
        "bool-true-thm",
@@ -375,7 +375,7 @@ val TEST_ARTICLES =
 
 fun mkSystemArticleFilename system name =
     let
-      val dir = OS.Path.concat (ARTICLE_DIR, system)
+      val dir = system
 
       val file = OS.Path.joinBaseExt {base = name, ext = SOME "art"}
     in
@@ -445,7 +445,8 @@ fun mkSummaryFilename name =
 
 fun summarize name =
     let
-      val () = TextIO.print ("Summarizing compressed article \"" ^ name ^ "\"\n")
+      val () =
+          TextIO.print ("Summarizing compressed article \"" ^ name ^ "\"\n")
 
       val artFilename = mkArticleFilename name
 
@@ -473,7 +474,9 @@ fun summarize name =
              summary = sum,
              filename = sumFilename}
 
-      val () = printer (Summary.ppWithShow show) sum
+      val out = readTextFile {filename = sumFilename}
+
+      val () = TextIO.print (out ^ "\n")
     in
       ()
     end;

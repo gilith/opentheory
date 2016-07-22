@@ -181,6 +181,7 @@ Compressing article "example12"
 WARNING: 2 different constants named c
 Compressing article "example13"
 Compressing article "example14"
+Compressing article "example15"
 Compressing article "bool-true-def"
 Compressing article "bool-true-thm"
 Compressing article "bool-forall-def"
@@ -196,7 +197,6 @@ Compressing article "bool-implies-thm-new"
 Summarizing articles
 
 Summarizing compressed article "empty"
-
 
 Summarizing compressed article "example1"
 1 external type operator: bool
@@ -317,6 +317,17 @@ Summarizing compressed article "example14"
   |- 2 ^ 2 ^ 7 + 1 = 59649589127497217 * 5704689200685129054721
 1 theorem:
   |- 2 ^ 2 ^ 7 + 1 = 59649589127497217 * 5704689200685129054721
+
+Summarizing compressed article "example15"
+WARNING: term too large to print
+WARNING: term too large to print
+3 external type operators: -> bool Number.Natural.natural
+6 external constants: = Number.Natural.+ Number.Natural.^
+  Number.Natural.bit0 Number.Natural.bit1 Number.Natural.zero
+1 assumption:
+  |- term{6291475}
+1 theorem:
+  |- term{6291475}
 
 Summarizing compressed article "bool-true-def"
 2 external type operators: -> bool
@@ -840,47 +851,47 @@ Check the package checksums are consistent
 --------------------------------------------------------------------------
 opentheory -d repos/upstream/opentheory list --format 'NAME-VERSION CHECKSUM' All
 
-bool-and-1.0 44575a09af053374a73b2912bca9927ef74dcca7
-bool-and-1.1 6c8b293c8cd8fba67fec8b7427734139a60af25c
-bool-and-def-1.0 912ae86bf0bb640d6c0067cae42b6c5c5ea6a5d5
-bool-and-thm-1.0 357fafc32d0d105a5c6ef8c12aee482831766440
-bool-and-thm-1.1 e2d03213f54af6460cf5df6cab0972e8b90699a4
-bool-forall-1.0 c0d8d8992af4c1a8f3afc5b42114dbeefdac5fe3
-bool-forall-def-1.0 397abfce125fe74cc71c660f61706f0988fe172d
-bool-forall-thm-1.0 460b51a2d3d53625ce8fe1a119f1e3ffd3b9346d
-bool-implies-1.0 1c30b5aab75b6085f1169be1751a30a3d641cb92
-bool-implies-def-1.0 ac97b575d8d0887612f8b2a284935bfaa30ba833
-bool-implies-thm-1.0 d83f97370f106157928f3f3f877643514f596505
-bool-true-1.0 eeb8a37fb05ccf707b9361f3682c5f1065a7c38d
-bool-true-def-1.0 0b490a0534c784952af4a76ac226a427e3457424
-bool-true-thm-1.0 27f565fc6937c14ad527d74f3d4d3ea250aac36c
+bool-and-1.0 a4543236197129b2973483c8517fa3e39a11e59b
+bool-and-1.1 c8dc7b049458a8562b7fec79fe712906dd54400a
+bool-and-def-1.0 ef36d7e3ed2dab089042bd0adf27ccae705f4396
+bool-and-thm-1.0 9468350f2f58b9c8ccb96cab5f5c34dd8382284a
+bool-and-thm-1.1 189ebc1df33a31874f09c17ea80a39674a4ec2aa
+bool-forall-1.0 c6460a13c6c9807b0eedbfebf47aa908c5e132fb
+bool-forall-def-1.0 d16c1969d234454fa23a28e9856cd08fba770487
+bool-forall-thm-1.0 f7100b09d676fb94fe473f1a2e2b25704ca5a6b2
+bool-implies-1.0 7d7a334df0bd71e3ee2b30370397a8eb486b3091
+bool-implies-def-1.0 19d665a6dd2d99f7ad8ebef2cb8faa39caab2dda
+bool-implies-thm-1.0 d1a36c5454474d73c7304df7ff854b908f6ed2a2
+bool-true-1.0 a5876af54ceaf97e31a76d0dbaaa0f7847540b48
+bool-true-def-1.0 7cb624e2ccd40d39ff240ed9461ac7e249c94927
+bool-true-thm-1.0 31f932fc306dc5fe8df0bfdd0565a8bfec3f6c17
 --------------------------------------------------------------------------
 opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
 
-bool-and-1.1 6c8b293c8cd8fba67fec8b7427734139a60af25c
-bool-and-def-1.0 912ae86bf0bb640d6c0067cae42b6c5c5ea6a5d5
-bool-and-thm-1.1 e2d03213f54af6460cf5df6cab0972e8b90699a4
-bool-forall-1.0 c0d8d8992af4c1a8f3afc5b42114dbeefdac5fe3
-bool-forall-def-1.0 397abfce125fe74cc71c660f61706f0988fe172d
-bool-forall-thm-1.0 460b51a2d3d53625ce8fe1a119f1e3ffd3b9346d
-bool-implies-1.0 1c30b5aab75b6085f1169be1751a30a3d641cb92
-bool-implies-def-1.0 ac97b575d8d0887612f8b2a284935bfaa30ba833
-bool-implies-thm-1.0 d83f97370f106157928f3f3f877643514f596505
-bool-true-1.0 eeb8a37fb05ccf707b9361f3682c5f1065a7c38d
-bool-true-def-1.0 0b490a0534c784952af4a76ac226a427e3457424
-bool-true-thm-1.0 27f565fc6937c14ad527d74f3d4d3ea250aac36c
+bool-and-1.1 c8dc7b049458a8562b7fec79fe712906dd54400a
+bool-and-def-1.0 ef36d7e3ed2dab089042bd0adf27ccae705f4396
+bool-and-thm-1.1 189ebc1df33a31874f09c17ea80a39674a4ec2aa
+bool-forall-1.0 c6460a13c6c9807b0eedbfebf47aa908c5e132fb
+bool-forall-def-1.0 d16c1969d234454fa23a28e9856cd08fba770487
+bool-forall-thm-1.0 f7100b09d676fb94fe473f1a2e2b25704ca5a6b2
+bool-implies-1.0 7d7a334df0bd71e3ee2b30370397a8eb486b3091
+bool-implies-def-1.0 19d665a6dd2d99f7ad8ebef2cb8faa39caab2dda
+bool-implies-thm-1.0 d1a36c5454474d73c7304df7ff854b908f6ed2a2
+bool-true-1.0 a5876af54ceaf97e31a76d0dbaaa0f7847540b48
+bool-true-def-1.0 7cb624e2ccd40d39ff240ed9461ac7e249c94927
+bool-true-thm-1.0 31f932fc306dc5fe8df0bfdd0565a8bfec3f6c17
 --------------------------------------------------------------------------
 opentheory -d repos/repo info --theory-source --show-checksums bool-implies
 
 def {
   package: bool-implies-def-1.0
-  checksum: ac97b575d8d0887612f8b2a284935bfaa30ba833
+  checksum: 19d665a6dd2d99f7ad8ebef2cb8faa39caab2dda
 }
 
 thm {
   import: def
   package: bool-implies-thm-1.0
-  checksum: d83f97370f106157928f3f3f877643514f596505
+  checksum: d1a36c5454474d73c7304df7ff854b908f6ed2a2
 }
 
 main {
@@ -916,7 +927,7 @@ installed package bool-implies-thm-1.1 from theory source file
 --------------------------------------------------------------------------
 opentheory -d repos/repo info --format 'NAME-VERSION CHECKSUM' bool-implies-thm
 
-bool-implies-thm-1.1 36e561b5e605040bd8468ce321c97a3b567befa0
+bool-implies-thm-1.1 d1e066ff0781dfa760fbb60f3fa652622cc40665
 --------------------------------------------------------------------------
 opentheory -d repos/repo list
 
@@ -944,13 +955,13 @@ opentheory -d repos/repo info --upgrade-theory --theory-source --show-checksums 
 
 def {
   package: bool-implies-def-1.0
-  checksum: ac97b575d8d0887612f8b2a284935bfaa30ba833
+  checksum: 19d665a6dd2d99f7ad8ebef2cb8faa39caab2dda
 }
 
 thm {
   import: def
   package: bool-implies-thm-1.1
-  checksum: 36e561b5e605040bd8468ce321c97a3b567befa0
+  checksum: d1e066ff0781dfa760fbb60f3fa652622cc40665
 }
 
 main {
