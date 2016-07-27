@@ -1639,10 +1639,16 @@ fun listStaged repo {maxAge} =
 fun cleanupStaged repo namever =
     let
       val stage = mkStagedPackage repo namever NONE
-
-      val () = Package.nukeDirectory stage
     in
-      ()
+      if Package.existsDirectory stage then Package.nukeDirectory stage
+      else
+        let
+          val err =
+              "package " ^ PackageNameVersion.toString namever ^
+              " is not staged"
+        in
+          raise Error err
+        end
     end;
 
 (* ------------------------------------------------------------------------- *)

@@ -212,10 +212,9 @@ else {
 
 <p>The recommended way to upload packages is to use the
 
-<a href="http://www.gilith.com/software/opentheory/">opentheory</a>
+<a href="http://www.gilith.com/software/opentheory/">opentheory tool</a>,
 
-package management tool, but it is also possible to <i>manually</i>
-upload package tarballs using the following form:</p>' .
+but it is also possible to <i>manually</i> upload package tarballs using the following form:</p>' .
 
 site_form(bread_crumbs(),
           $select->select(),

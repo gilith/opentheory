@@ -1661,7 +1661,7 @@ datatype grammar =
        ppInfix : Show.show -> (Const.const * Type.ty) Print.pp,
        ppBinder : Show.show -> (Const.const * Type.ty) option Print.pp,
        ppNumeral : Show.show -> (bool list * Type.ty) Print.pp,
-       maximumSize : int};
+       maximumSize : int option};
 
 local
   fun mkName s = Name.mkGlobal s;
@@ -1807,6 +1807,8 @@ local
 
   fun ppNumeral _ (i,_) = Print.ppString (decimalNumeral i);
 
+  val maximumSize = SOME 10000;
+
   (* HTML *)
 
   fun showConstHtml show (c,ty) = Const.showNameHtml show (c, SOME ty);
@@ -1913,7 +1915,7 @@ local
     fun ppNumeralHtml show = Print.ppMap (toHtmlNumeral show) Html.ppFixed;
   end;
 
-  val maximumSize = 10000;
+  val maximumSizeHtml = NONE;
 in
   val defaultGrammar =
       Grammar
@@ -1943,7 +1945,7 @@ in
          ppInfix = ppInfixHtml,
          ppBinder = ppBinderHtml,
          ppNumeral = ppNumeralHtml,
-         maximumSize = maximumSize};
+         maximumSize = maximumSizeHtml};
 end;
 
 local
@@ -2402,21 +2404,30 @@ in
            in
              fn tm =>
                 let
-                  val n = size tm
+                  val tooLarge =
+                      case maximumSize of
+                        NONE => NONE
+                      | SOME m =>
+                        let
+                          val n = size tm
+                        in
+                          if n <= m then NONE else SOME n
+                        end
                 in
-                  if n <= maximumSize then
+                  case tooLarge of
+                    NONE =>
                     ppTerm
                       negationNames infixNames binderNames specialNames
                       showConst
                       ppInfixes ppConst ppNegation ppInfix ppBinder
                       ppNumeral ppVar ppSyntax show tm
-                  else
+                  | SOME n =>
                     let
                       val () = warn "term too large to print"
                     in
                       Print.inconsistentBlock 0
                         [ppSyntax "term{",
-                         Print.ppInt n,
+                         Print.ppPrettyInt n,
                          ppSyntax "}"]
                     end
                 end

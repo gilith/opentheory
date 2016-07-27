@@ -444,7 +444,7 @@ datatype grammar =
        ppInfix : Show.show -> (Const.const * Type.ty) Print.pp,
        ppBinder : Show.show -> (Const.const * Type.ty) option Print.pp,
        ppNumeral : Show.show -> (bool list * Type.ty) Print.pp,
-       maximumSize : int}
+       maximumSize : int option}
 
 val defaultGrammar : grammar
 

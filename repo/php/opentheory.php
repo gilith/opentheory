@@ -29,24 +29,37 @@ function opentheory_log($line) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Invoke the opentheory program.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_exec($args,&$output) {
+  is_string($args) or trigger_error('bad args');
+
+  $cmd = REPO_BIN . ' -d ' . REPO_PATH . ' ' . $args;
+
+  exec($cmd, $output, $status);
+
+  is_array($output) or trigger_error('bad output');
+  is_int($status) or trigger_error('bad status');
+
+  return ($status == 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Invoke the opentheory program to carry out an action.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_action($action,$args) {
+function opentheory_action($action,$args,&$error) {
   is_string($action) or trigger_error('bad action');
   is_string($args) or trigger_error('bad args');
 
-  $cmd =
-REPO_BIN .
-' -d ' . REPO_PATH . ' ' .
-$action . $args .
-' 2>&1 >> ' . REPO_LOG_PATH;
+  $action_args = $action . $args . ' 2>&1 >> ' . REPO_LOG_PATH;
 
-  $output = shell_exec($cmd);
+  $success = opentheory_exec($action_args,$output);
 
-  if (isset($output)) { $output = rtrim($output); }
+  $error = implode("\n",$output);
 
-  return $output;
+  return $success;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,16 +70,11 @@ function opentheory_query($action,$args) {
   is_string($action) or trigger_error('bad action');
   is_string($args) or trigger_error('bad args');
 
-  $cmd =
-REPO_BIN .
-' -d ' . REPO_PATH . ' ' .
-$action . $args .
-' 2>&1';
+  $action_args = $action . $args . ' 2>&1';
 
-  $output = shell_exec($cmd);
-
-  if (isset($output)) { $output = rtrim($output); }
-  else { $output = ''; }
+  if (!opentheory_exec($action_args,$output)) {
+    trigger_error('query failed');
+  }
 
   return $output;
 }
@@ -78,7 +86,7 @@ $action . $args .
 function opentheory_version() {
   $args = '--version';
 
-  $output = opentheory_query('',$args);
+  $output = implode("\n", opentheory_query('',$args));
 
   return $output;
 }
@@ -90,10 +98,28 @@ function opentheory_version() {
 function opentheory_init() {
   $args = ' --repo';
 
-  $output = opentheory_action('init',$args);
+  if (!opentheory_action('init',$args,$error)) {
+    trigger_error('couldn\'t initialize directory: ' . $error);
+  }
+}
 
-  if (isset($output)) {
-    trigger_error('couldn\'t initialize directory: ' . $output);
+///////////////////////////////////////////////////////////////////////////////
+// Clean up a staged package.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_cleanup($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $args = ' ' . $name_version->staged_to_string();
+
+  if (!opentheory_action('cleanup',$args,$error)) {
+    trigger_error('cleanup failed: ' . $error);
+  }
+}
+
+function opentheory_cleanup_all() {
+  if (!opentheory_action('cleanup','',$error)) {
+    trigger_error('cleanup failed: ' . $error);
   }
 }
 
@@ -104,10 +130,8 @@ function opentheory_init() {
 function opentheory_update() {
   $args = '';
 
-  $output = opentheory_action('update',$args);
-
-  if (isset($output)) {
-    trigger_error('couldn\'t update upstream repos: ' . $output);
+  if (!opentheory_action('update',$args,$error)) {
+    trigger_error('couldn\'t update upstream repos: ' . $error);
   }
 }
 
@@ -126,9 +150,20 @@ function opentheory_stage($tarball,$name_version,$checksum) {
 
   $args .= ' tarball:' . $tarball;
 
-  $output = opentheory_action('install',$args);
+  if (opentheory_action('install',$args,$error)) {
+    if (strcmp($error,'') == 0) {
+      $error = null;
+    }
+    else {
+      // Uploading packages with warnings is not allowed
+      opentheory_cleanup($name_version);
+    }
+  }
+  else {
+    isset($error) or trigger_error('silent failure is bad');
+  }
 
-  return $output;
+  return $error;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -140,29 +175,9 @@ function opentheory_complete($name_version) {
 
   $args = ' ' . $name_version->staged_to_string();
 
-  $error = opentheory_action('install',$args);
-
-  if (isset($error)) { trigger_error('complete failed: ' . $error); }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Clean up a staged package.
-///////////////////////////////////////////////////////////////////////////////
-
-function opentheory_cleanup($name_version) {
-  isset($name_version) or trigger_error('bad name_version');
-
-  $args = ' ' . $name_version->staged_to_string();
-
-  $error = opentheory_action('cleanup',$args);
-
-  if (isset($error)) { trigger_error('cleanup failed: ' . $error); }
-}
-
-function opentheory_cleanup_all() {
-  $error = opentheory_action('cleanup','');
-
-  if (isset($error)) { trigger_error('cleanup failed: ' . $error); }
+  if (!opentheory_action('install',$args,$error)) {
+    trigger_error('complete failed: ' . $error);
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,34 +192,42 @@ function opentheory_install($name_version,$checksum) {
 
   $args .= ' ' . $name_version->to_string();
 
-  $output = opentheory_action('install',$args);
+  if (opentheory_action('install',$args,$error)) {
+    if (strcmp($error,'') != 0) {
+      // Installing packages with warnings is allowed
+      $log =
+'installing package ' . $name_version->to_string() .
+" generated warnings:\n" . $error;
+      opentheory_log($log);
+    }
+    $error = null;
+  }
+  else {
+    isset($error) or trigger_error('silent failure is bad');
+  }
 
-  return $output;
+  return $error;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Query package information.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_parse_tags($target) {
+function opentheory_query_tags($target) {
   is_string($target) or trigger_error('bad target');
 
   $args = ' --information ' . $target;
 
-  $output = opentheory_query('info',$args);
+  $lines = opentheory_query('info',$args);
 
   $tags = array();
 
-  if (strcmp($output,'') != 0) {
-    $lines = explode("\n", $output);
+  foreach ($lines as $line) {
+    $tag = from_string_package_tag($line);
 
-    foreach ($lines as $line) {
-      $tag = from_string_package_tag($line);
+    if (!isset($tag)) { trigger_error('bad tag'); }
 
-      if (!isset($tag)) { trigger_error('bad tag'); }
-
-      $tags[] = $tag;
-    }
+    $tags[] = $tag;
   }
 
   return $tags;
@@ -215,7 +238,7 @@ function opentheory_tags($name_version) {
 
   $target = $name_version->to_string();
 
-  return opentheory_parse_tags($target);
+  return opentheory_query_tags($target);
 }
 
 function opentheory_staged_tags($name_version) {
@@ -223,30 +246,29 @@ function opentheory_staged_tags($name_version) {
 
   $target = $name_version->staged_to_string();
 
-  return opentheory_parse_tags($target);
+  return opentheory_query_tags($target);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Query installed packages.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_parse_name_versions($text) {
-  is_string($text) or trigger_error('bad text');
+function opentheory_query_name_versions($action,$args) {
+  is_string($action) or trigger_error('bad action');
+  is_string($args) or trigger_error('bad args');
+
+  $lines = opentheory_query($action,$args);
 
   $name_versions = array();
 
-  if (strcmp($text,'') != 0) {
-    $lines = explode("\n", $text);
+  foreach ($lines as $line) {
+    $name_version = from_string_package_name_version($line);
 
-    foreach ($lines as $line) {
-      $name_version = from_string_package_name_version($line);
-
-      if (!isset($name_version)) {
-        trigger_error('bad NAME-VERSION format in ' . $line);
-      }
-
-      $name_versions[] = $name_version;
+    if (!isset($name_version)) {
+      trigger_error('bad NAME-VERSION format in ' . $line);
     }
+
+    $name_versions[] = $name_version;
   }
 
   return $name_versions;
@@ -257,9 +279,29 @@ function opentheory_list($query) {
 
   $args = " --include-order '" . $query . "'";
 
-  $output = opentheory_query('list',$args);
+  $name_versions = opentheory_query_name_versions('list',$args);
 
-  $name_versions = opentheory_parse_name_versions($output);
+  return $name_versions;
+}
+
+function opentheory_list_staged() {
+  $dir = site_path(array(REPO_DIR,REPO_STAGING_DIR));
+
+  $files = scandir($dir);
+
+  $name_versions = array();
+
+  foreach ($files as $file) {
+    if (strcmp($file,".") != 0 && strcmp($file,"..") != 0) {
+      $name_version = from_string_package_name_version($file);
+
+      if (!isset($name_version)) {
+        trigger_error('bad NAME-VERSION format in ' . $file);
+      }
+
+      $name_versions[] = $name_version;
+    }
+  }
 
   return $name_versions;
 }
@@ -273,9 +315,7 @@ function opentheory_includes($name_version) {
 
   $args = ' --includes ' . $name_version->to_string();
 
-  $output = opentheory_query('info',$args);
-
-  $name_versions = opentheory_parse_name_versions($output);
+  $name_versions = opentheory_query_name_versions('info',$args);
 
   return $name_versions;
 }
@@ -285,9 +325,7 @@ function opentheory_staged_includes($name_version) {
 
   $args = ' --includes ' . $name_version->staged_to_string();
 
-  $output = opentheory_query('info',$args);
-
-  $name_versions = opentheory_parse_name_versions($output);
+  $name_versions = opentheory_query_name_versions('info',$args);
 
   return $name_versions;
 }
@@ -336,8 +374,14 @@ function opentheory_staged_timestamp($name_version) {
 // Query whether a package is empty.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_parse_empty_theory($output) {
-  is_string($output) or trigger_error('bad output');
+function opentheory_query_empty_theory($target) {
+  is_string($target) or trigger_error('bad target');
+
+  $args = ' --format EMPTY ' . $target;
+
+  $lines = opentheory_query('info',$args);
+
+  $output = implode("\n",$lines);
 
   if (strcmp($output,"T") == 0) {
     $empty_theory = true;
@@ -355,21 +399,13 @@ function opentheory_parse_empty_theory($output) {
 function opentheory_empty_theory($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $args = ' --format EMPTY ' . $name_version->to_string();
-
-  $output = opentheory_query('info',$args);
-
-  return opentheory_parse_empty_theory($output);
+  return opentheory_query_empty_theory($name_version->to_string());
 }
 
 function opentheory_staged_empty_theory($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $args = ' --format EMPTY ' . $name_version->staged_to_string();
-
-  $output = opentheory_query('info',$args);
-
-  return opentheory_parse_empty_theory($output);
+  return opentheory_query_empty_theory($name_version->staged_to_string());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -377,9 +413,11 @@ function opentheory_staged_empty_theory($name_version) {
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_reset() {
-  $cmd = 'rm -rf ' . REPO_PATH;
+  $cmd = 'rm -rf ' . REPO_PATH . ' 2>&1';
 
-  shell_exec($cmd);
+  $error = shell_exec($cmd);
+
+  if (isset($error)) { trigger_error('deleting error: ' . $error); }
 
   opentheory_log('deleted package directory');
 

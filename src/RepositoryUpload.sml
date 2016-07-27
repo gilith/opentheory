@@ -385,9 +385,7 @@ in
               end
       in
         ()
-      end
-      handle Error err =>
-        raise Error (err ^ "\npackage upload failed");
+      end;
 end;
 
 (* ------------------------------------------------------------------------- *)
