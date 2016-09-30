@@ -230,14 +230,29 @@ capture-theories: $(OPENTHEORY)
 
 .PHONY: import-theories
 import-theories: $(OPENTHEORY)
+	@echo
+	@echo '+--------------------------------+'
+	@echo '| Import theories from HOL Light |'
+	@echo '+--------------------------------+'
+	@echo
 	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/export
 
 .PHONY: install-theories
 install-theories: $(OPENTHEORY)
+	@echo
+	@echo '+--------------------------+'
+	@echo '| Install updated theories |'
+	@echo '+--------------------------+'
+	@echo
 	$(INSTALL_THEORIES)
 
 .PHONY: check-theories
 check-theories: $(OPENTHEORY)
+	@echo
+	@echo '+--------------------------+'
+	@echo '| Check installed theories |'
+	@echo '+--------------------------+'
+	@echo
 	$(CHECK_THEORIES)
 
 .PHONY: theories

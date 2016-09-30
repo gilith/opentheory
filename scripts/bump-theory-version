@@ -45,13 +45,13 @@ while (my $line = <THEORY>) {
             $bumped = 1;
         }
     }
-    elsif ($opt_p && $line =~ /^provenance: *(.*) extracted on /) {
+    elsif ($opt_p && $line =~ /^provenance: *(.*) (extracted|exported) on /) {
         my $p = $1;
 
         my $d = `date "+%Y-%m-%d"`;
         chomp $d;
 
-        print STDOUT "provenance: $p extracted on $d\n";
+        print STDOUT "provenance: $p exported on $d\n";
     }
     else {
         print STDOUT "$line\n";

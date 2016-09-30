@@ -1,9 +1,9 @@
 name: set-thm
-version: 1.68
+version: 1.69
 description: Properties of set types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2016-07-16
+provenance: HOL Light theory exported on 2016-09-29
 requires: bool
 requires: function
 requires: natural
