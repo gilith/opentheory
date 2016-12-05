@@ -1,5 +1,5 @@
 name: natural-div
-version: 1.51
+version: 1.52
 description: Natural number division
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -19,7 +19,7 @@ def {
 
 thm {
   import: def
-  package: natural-div-thm-1.54
+  package: natural-div-thm-1.55
 }
 
 main {
