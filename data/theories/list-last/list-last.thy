@@ -1,9 +1,10 @@
 name: list-last
-version: 1.52
+version: 1.53
 description: The last list function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: list-append
 requires: list-def
 requires: list-dest
 show: "Data.Bool"
@@ -15,7 +16,7 @@ def {
 
 thm {
   import: def
-  package: list-last-thm-1.40
+  package: list-last-thm-1.41
 }
 
 main {

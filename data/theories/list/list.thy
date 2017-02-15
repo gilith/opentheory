@@ -1,5 +1,5 @@
 name: list
-version: 1.104
+version: 1.105
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -75,7 +75,8 @@ filter {
 last {
   import: def
   import: dest
-  package: list-last-1.52
+  import: append
+  package: list-last-1.53
 }
 
 reverse {
