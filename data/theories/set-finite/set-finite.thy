@@ -1,5 +1,5 @@
 name: set-finite
-version: 1.58
+version: 1.59
 description: Finite sets
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: set-finite-thm-1.64
+  package: set-finite-thm-1.65
 }
 
 main {
