@@ -21,7 +21,7 @@ val program = "opentheory";
 
 val version = "1.3";
 
-val release = " (release 20160726)";
+val release = " (release 20170524)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -807,6 +807,7 @@ datatype info =
   | IncludesInfo
   | InferenceInfo
   | RequiresInfo
+  | RequiresVersionsInfo
   | SummaryInfo
   | SymbolsInfo
   | TagsInfo
@@ -994,8 +995,12 @@ in
           beginOpt endOpt
             (fn f => addInfoOutput f (ArticleInfo NONE))},
        {switches = ["--requires"], arguments = [],
-        description = "list satisfying required packages",
+        description = "list required packages",
         processor = beginOpt endOpt (fn f => addInfoOutput f RequiresInfo)},
+       {switches = ["--requires-versions"], arguments = [],
+        description = "list satisfying versions of required packages",
+        processor =
+          beginOpt endOpt (fn f => addInfoOutput f RequiresVersionsInfo)},
        {switches = ["--inference"], arguments = [],
         description = "display count of inference rules",
         processor = beginOpt endOpt (fn f => addInfoOutput f InferenceInfo)},
@@ -2302,6 +2307,21 @@ local
           Stream.toTextFile file strm
         end
       | RequiresInfo =>
+        let
+          fun mk n = PackageName.toString n ^ "\n"
+
+          val info =
+              case getInformation () of
+                SOME i => i
+              | NONE => raise Error "no requires information available"
+
+          val reqs = PackageInformation.requires info
+
+          val strm = Stream.map mk (Stream.fromList reqs)
+        in
+          Stream.toTextFile file strm
+        end
+      | RequiresVersionsInfo =>
         let
           fun checkPrevious oldest ths vs =
               if Queue.null ths then oldest
