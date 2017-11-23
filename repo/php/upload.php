@@ -301,7 +301,7 @@ class UploadTable extends DatabaseTable {
 
     $upls = array();
 
-    while ($row = mysql_fetch_array($result)) {
+    while ($row = mysqli_fetch_assoc($result)) {
       $upls[] = from_row_upload($row);
     }
 

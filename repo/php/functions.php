@@ -178,7 +178,7 @@ function from_string($s) {
   if (!isset($s)) { return null; }
   $s = trim($s);
   if (strcmp($s,'') == 0) { return null; }
-  $s = ereg_replace('  +',' ',$s);
+  $s = preg_replace('/  +/',' ',$s);
   return $s;
 }
 
@@ -207,7 +207,7 @@ function percentage_from_string($s) {
 function checksum_from_string($s) {
   $s = from_string($s);
   if (!isset($s)) { return null; }
-  elseif (!ereg('([0-9][a-f])+',$s)) { return null; }
+  elseif (!preg_match('/([0-9][a-f])+/',$s)) { return null; }
   else { return $s; }
 }
 
@@ -216,40 +216,40 @@ function checksum_from_string($s) {
 ///////////////////////////////////////////////////////////////////////////////
 
 function string_to_url($s) {
-  $s = ereg_replace('%','%25',$s);  // Must go first in the list
+  $s = preg_replace('/%/','%25',$s);  // Must go first in the list
 
-  $s = ereg_replace('#','%23',$s);
-  $s = ereg_replace('\$','%24',$s);
-  $s = ereg_replace('&','%26',$s);
-  $s = ereg_replace('\'','%27',$s);
-  $s = ereg_replace('\+','%2B',$s);
-  $s = ereg_replace('/','%2F',$s);
-  $s = ereg_replace(':','%3A',$s);
-  $s = ereg_replace(';','%3B',$s);
-  $s = ereg_replace('<','%3C',$s);
-  $s = ereg_replace('=','%3D',$s);
-  $s = ereg_replace('>','%3E',$s);
-  $s = ereg_replace('\?','%3F',$s);
-  $s = ereg_replace('@','%40',$s);
-  $s = ereg_replace('\[','%5B',$s);
-  $s = ereg_replace('\\\\','%5C',$s);
-  $s = ereg_replace('\]','%5D',$s);
-  $s = ereg_replace('\^','%5E',$s);
-  $s = ereg_replace('`','%60',$s);
-  $s = ereg_replace('\{','%7B',$s);
-  $s = ereg_replace('\|','%7C',$s);
-  $s = ereg_replace('\}','%7D',$s);
-  $s = ereg_replace('~','%7E',$s);
+  $s = preg_replace('/#/','%23',$s);
+  $s = preg_replace('/\$/','%24',$s);
+  $s = preg_replace('/&/','%26',$s);
+  $s = preg_replace('/\'/','%27',$s);
+  $s = preg_replace('/\+/','%2B',$s);
+  $s = preg_replace('#/#','%2F',$s);
+  $s = preg_replace('/:/','%3A',$s);
+  $s = preg_replace('/;/','%3B',$s);
+  $s = preg_replace('/</','%3C',$s);
+  $s = preg_replace('/=/','%3D',$s);
+  $s = preg_replace('/>/','%3E',$s);
+  $s = preg_replace('/\?/','%3F',$s);
+  $s = preg_replace('/@/','%40',$s);
+  $s = preg_replace('/\[/','%5B',$s);
+  $s = preg_replace('/\\\\/','%5C',$s);
+  $s = preg_replace('/\]/','%5D',$s);
+  $s = preg_replace('/\^/','%5E',$s);
+  $s = preg_replace('/`/','%60',$s);
+  $s = preg_replace('/\{/','%7B',$s);
+  $s = preg_replace('/\|/','%7C',$s);
+  $s = preg_replace('/\}/','%7D',$s);
+  $s = preg_replace('/~/','%7E',$s);
 
-  $s = ereg_replace(' ','+',$s);  // Must go last in the list
+  $s = preg_replace('/ /','+',$s);  // Must go last in the list
 
   return $s;
 }
 
 function string_to_html($s) {
-  $s = ereg_replace('&','&amp;',$s);
-  $s = ereg_replace('<','&lt;',$s);
-  $s = ereg_replace('>','&gt;',$s);
+  $s = preg_replace('/&/','&amp;',$s);
+  $s = preg_replace('/</','&lt;',$s);
+  $s = preg_replace('/>/','&gt;',$s);
   return $s;
 }
 
@@ -271,7 +271,7 @@ function string_to_html_with_linebreaks($s,$max) {
 
   if (!isset($max) || $len <= $max) {
     $s = string_to_html($s);
-    $s = ereg_replace(' ','&nbsp;',$s);
+    $s = preg_replace('/ /','&nbsp;',$s);
     return $s;
   }
 

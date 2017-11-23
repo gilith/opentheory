@@ -26,19 +26,21 @@ function database_connection() {
   if (!isset($global_database_connection)) {
     $tries = DATABASE_CONNECT_TRIES;
 
-    // This uses persistent connections: mysql_pconnect
-    // To use simple connections, replace with: mysql_connect
+    while (!isset($global_database_connection)) {
+      $global_database_connection =
+        mysqli_connect(DATABASE_HOST,
+                       DATABASE_USER,
+                       DATABASE_PASSWORD,
+                       DATABASE_NAME);
 
-    while (!($global_database_connection =
-               mysql_pconnect(DATABASE_HOST,DATABASE_USER,DATABASE_PASSWORD))) {
-      if (--$tries <= 0) {
-        trigger_error('could not connect to MySQL server');
+      if (mysqli_connect_errno($global_database_connection)) {
+        if (--$tries <= 0) {
+          trigger_error('failed to connect to MySQL server: ' .
+                        mysqli_connect_error());
+        }
+
+        $global_database_connection = null;
       }
-    }
-
-    if (!(mysql_select_db(DATABASE_NAME,$global_database_connection))) {
-      trigger_error('could not select MySQL database: ' .
-                    'error #' . mysql_errno() . ' = ' . mysql_error());
     }
   }
 
@@ -72,8 +74,8 @@ function database_query($query) {
 
 #  var_dump($query);
 
-  if (!($result = mysql_query($query,$connection))) {
-    trigger_error('MySQL Error ' . mysql_errno() . ': ' . mysql_error()
+  if (!($result = mysqli_query($connection,$query))) {
+    trigger_error('MySQL error ' . mysqli_errno() . ': ' . mysqli_error()
                   . "\n\n" . $query);
   }
 
@@ -117,8 +119,8 @@ class DatabaseTable {
       FROM ' . $this->table() . (isset($where_condition) ? ('
       WHERE ' . $where_condition) : '') . ';');
 
-    if ($row = mysql_fetch_array($result)) {
-      if (mysql_fetch_array($result)) {
+    if ($row = mysqli_fetch_assoc($result)) {
+      if (mysqli_fetch_assoc($result)) {
         trigger_error('multiple rows');
       }
       else {
@@ -191,7 +193,7 @@ class DatabaseTable {
     }
 
     foreach ($this->_indexes as $index) {
-      if (ereg('^PRIMARY KEY',$index)) {
+      if (preg_match('/^PRIMARY KEY/',$index)) {
         if ($first) { $first = false; } else { $query .= ','; }
         $query .= "\n" . '  ' . $index;
       }
@@ -208,7 +210,7 @@ class DatabaseTable {
     $first = true;
 
     foreach ($this->_indexes as $index) {
-      if (!ereg('^PRIMARY KEY',$index)) {
+      if (!preg_match('/^PRIMARY KEY/',$index)) {
         if ($first) { $first = false; } else { $query .= ','; }
         $query .= "\n" . '  ADD ' . $index;
       }
@@ -227,7 +229,7 @@ class DatabaseTable {
   function import_from($table) {
     $fields = array();
     foreach ($this->field_names() as $field) {
-      if (ereg('^cached_',$field)) {
+      if (preg_match('/^cached_/',$field)) {
         $fields[] = database_value(null);
       }
       else {

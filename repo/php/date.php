@@ -80,15 +80,15 @@ class TimeInterval {
 
     if ($t < 1.0) {
       $s = sprintf('%.2f',$t);
-      $s = ereg_replace('0$','',$s);
-      $s = ereg_replace('.0$','',$s);
+      $s = preg_replace('/0$/','',$s);
+      $s = preg_replace('/.0$/','',$s);
       $s .= ($abbrev ? 's' : (' second' . ((strcmp($s,'1') == 0) ? '' : 's')));
       return $s;
     }
 
     if ($t < 10.0) {
       $s = sprintf('%.1f',$t);
-      $s = ereg_replace('.0$','',$s);
+      $s = preg_replace('/.0$/','',$s);
       $s .= ($abbrev ? 's' : (' second' . ((strcmp($s,'1') == 0) ? '' : 's')));
       return $s;
     }
@@ -799,11 +799,11 @@ class TimePoint {
     is_string($date) or trigger_error('bad date');
 
     $date_regexp =
-      '^([0-9][0-9]?)' . ' *' .
+      '/^([0-9][0-9]?)' . ' *' .
       '(' . implode('|', $all_short_months) . ')' . ' *' .
-      '([12][0-9]{3})$';
+      '([12][0-9]{3})$/i';
 
-    if (!eregi($date_regexp, $date, $arr)) {
+    if (!preg_match($date_regexp, $date, $arr)) {
       trigger_error('invalid date format');
     }
 
@@ -868,7 +868,7 @@ class TimePoint {
   function from_database_date($date, $preserve_time = false) {
     is_string($date) or trigger_error('bad date');
 
-    if (!ereg('^([0-9]{4})-([0-9]{2})-([0-9]{2})$', $date, $arr)) {
+    if (!preg_match('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/', $date, $arr)) {
       trigger_error('invalid date format');
     }
 
@@ -892,7 +892,7 @@ class TimePoint {
   function from_database_time($time, $preserve_date = false) {
     is_string($time) or trigger_error('bad time');
 
-    if (!ereg('^([0-9]{2}):([0-9]{2}):([0-9]{2})$', $time, $arr)) {
+    if (!preg_match('/^([0-9]{2}):([0-9]{2}):([0-9]{2})$/', $time, $arr)) {
       trigger_error('invalid time format');
     }
 
@@ -915,8 +915,8 @@ class TimePoint {
   function from_database_datetime($datetime) {
     is_string($datetime) or trigger_error('bad datetime');
 
-    if (!ereg('^([0-9]{4}-[0-9]{2}-[0-9]{2}) ' .
-              '([0-9]{2}:[0-9]{2}:[0-9]{2})$', $datetime, $arr)) {
+    if (!preg_match('/^([0-9]{4}-[0-9]{2}-[0-9]{2}) ' .
+                    '([0-9]{2}:[0-9]{2}:[0-9]{2})$/', $datetime, $arr)) {
       trigger_error('invalid datetime format');
     }
 
@@ -927,8 +927,8 @@ class TimePoint {
   function from_photo_datetime($datetime) {
     is_string($datetime) or trigger_error('bad datetime');
 
-    if (!ereg('^([0-9]{4}):([0-9]{2}):([0-9]{2}) ' .
-              '([0-9]{2}):([0-9]{2}):([0-9]{2})$', $datetime, $arr)) {
+    if (!preg_match('/^([0-9]{4}):([0-9]{2}):([0-9]{2}) ' .
+                    '([0-9]{2}):([0-9]{2}):([0-9]{2})$/', $datetime, $arr)) {
       trigger_error('invalid datetime format');
     }
 

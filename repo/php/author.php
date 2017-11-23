@@ -221,9 +221,9 @@ function find_or_create_package_author($name,$email) {
 function from_string_package_author($name_email) {
   is_string($name_email) or trigger_error('bad name_email');
 
-  $re = '^' . PACKAGE_AUTHOR_REGEXP . '$';
+  $re = '/^' . PACKAGE_AUTHOR_REGEXP . '$/';
 
-  if (ereg($re,$name_email,$arr)) {
+  if (preg_match($re,$name_email,$arr)) {
     $name = $arr[1];
     $email = $arr[2];
 

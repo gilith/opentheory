@@ -55,7 +55,7 @@ class PackageGraphTable extends DatabaseTable {
 
     $child_ids = array();
 
-    while ($row = mysql_fetch_array($result)) {
+    while ($row = mysqli_fetch_assoc($result)) {
       $child_ids[] = (integer)$row['child'];
     }
 
@@ -85,7 +85,7 @@ class PackageGraphTable extends DatabaseTable {
 
     $parent_ids = array();
 
-    while ($row = mysql_fetch_array($result)) {
+    while ($row = mysqli_fetch_assoc($result)) {
       $parent_ids[] = (integer)$row['parent'];
     }
 

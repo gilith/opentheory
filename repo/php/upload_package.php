@@ -83,7 +83,7 @@ class UploadPackageTable extends DatabaseTable {
 
     $pkg_ids = array();
 
-    while ($row = mysql_fetch_array($result)) {
+    while ($row = mysqli_fetch_assoc($result)) {
       $pkg_ids[] = (integer)$row['package'];
     }
 

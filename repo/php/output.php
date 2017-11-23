@@ -146,7 +146,7 @@ function navigation() {
 
   $nav .= '</p>';
 
-  $nav = ereg_replace('^<p></p>','',$nav);
+  $nav = preg_replace('#^<p></p>#','',$nav);
 
   $logo = site_image('logo.png','OpenTheory');
   $text = repo_name();
@@ -223,6 +223,9 @@ function output($head, $main, $image) {
     $title = repo_name();
   }
 
+  if (array_key_exists('favicon',$head)) { $favicon = $head['favicon']; }
+  else { $favicon = site_path(array('favicon.ico')); }
+
   if (is_array($image)) {
     if (count($image) == 0) {
       $image = null;
@@ -231,9 +234,6 @@ function output($head, $main, $image) {
       $image = implode('</div><div class="image">', $image);
     }
   }
-
-  if (array_key_exists('favicon',$head)) { $favicon = $head['favicon']; }
-  else { $favicon = site_path(array('favicon.ico')); }
 
   $page =
 '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">

@@ -1,9 +1,9 @@
 The opentheory Tool (Development Version)
 =========================================
 
-The [opentheory tool][] processes higher order logic theory packages in [OpenTheory][] format.
+The [opentheory tool][OpentheoryRelease] processes higher order logic theory packages in [OpenTheory][] format.
 
-Cloning this repo will install a development version, which has active debugging code and includes a large collection of theories used for regressions. The latest official release of the opentheory tool without any extra development cruft [lives here][opentheory tool].
+Cloning this repo will install a [development version][OpentheoryDevelopment], which has active debugging code and includes a large collection of theories used for regressions. The latest official release of the opentheory tool without any extra development cruft [lives here][OpentheoryRelease].
 
 This software is released under the [MIT License][].
 
@@ -60,7 +60,7 @@ A simple test is to display tool help, including the options available for each 
 
     path/to/opentheory help
 
-A more serious test is to install the [standard theory library][] using the command
+A more serious test is to install the [standard theory library][StandardTheoryLibrary] using the command
 
     path/to/opentheory install base
 
@@ -73,12 +73,14 @@ You can use
 
 to clean out any object files.
 
-To report bugs or obtain help, please email <opentheory-users@gilith.com>
+To report a bug or request an enhancement, please file an issue at [GitHub][OpentheoryIssues].
 
-[OpenTheory]: http://www.gilith.com/research/opentheory/ "The OpenTheory project home page"
-[opentheory tool]: http://www.gilith.com/software/opentheory/ "The opentheory tool"
-[standard theory library]: http://opentheory.gilith.com/?pkg=base "The OpenTheory standard theory library"
-[MLton]: http://www.mlton.org/ "The MLton compiler"
-[Poly/ML]: http://www.polyml.org/ "The Poly/ML compiler"
-[Moscow ML]: http://www.dina.dk/~sestoft/mosml.html "The Moscow ML compiler"
+[OpenTheory]: http://www.gilith.com/opentheory/ "OpenTheory project home page"
+[OpentheoryDevelopment]: https://github.com/gilith/opentheory "opentheory tool development"
+[OpentheoryIssues]: https://github.com/gilith/opentheory/issues "opentheory tool issues"
+[OpentheoryRelease]: http://www.gilith.com/software/opentheory/ "opentheory tool release"
+[StandardTheoryLibrary]: http://opentheory.gilith.com/?pkg=base "OpenTheory standard theory library"
+[MLton]: http://www.mlton.org/ "MLton compiler"
+[Poly/ML]: http://www.polyml.org/ "Poly/ML compiler"
+[Moscow ML]: http://www.dina.dk/~sestoft/mosml.html "Moscow ML compiler"
 [MIT License]: https://github.com/gilith/opentheory/blob/master/LICENSE "MIT License"

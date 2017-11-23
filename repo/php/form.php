@@ -165,11 +165,11 @@ class SelectData {
 
   function value() { trigger_error('abstract function'); }
 
-  function set_value() { trigger_error('abstract function'); }
+  function set_value($value) { trigger_error('abstract function'); }
 
   function error() { trigger_error('abstract function'); }
 
-  function set_error() { trigger_error('abstract function'); }
+  function set_error($error) { trigger_error('abstract function'); }
 
   function select() { trigger_error('abstract function'); }
 
@@ -565,7 +565,7 @@ class SelectNumber extends SelectText {
   function validate() {
     if (!$this->is_error()) {
       $v = parent::value();
-      if (isset($v) && !ereg('[-~]?[0-9]+',$v)) {
+      if (isset($v) && !preg_match('/[-~]?[0-9]+/',$v)) {
         $this->set_error($this->error_message_not_number());
       }
     }
@@ -864,7 +864,7 @@ class SelectURL extends SelectText {
   function validate() {
     if (!$this->is_error()) {
       $v = parent::value();
-      if (isset($v) && !ereg('^http://',$v)) {
+      if (isset($v) && !preg_match('#^http://#',$v)) {
         $this->set_error($this->error_message_not_url());
       }
     }

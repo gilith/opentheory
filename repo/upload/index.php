@@ -33,7 +33,7 @@ class SelectUploadData extends SelectValue {
       $file = $this->_select_tarball->value();
 
       $tarball_name = $file['client'];
-      $tarball_name = ereg_replace('^.*/','',$tarball_name);
+      $tarball_name = preg_replace('#^.*/#','',$tarball_name);
 
       $name_version = from_tarball_package_name_version($tarball_name);
 

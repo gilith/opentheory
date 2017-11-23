@@ -41,9 +41,9 @@ function bread_crumbs() {
   if (!isset($global_bread_crumbs)) {
     $path = $_SERVER['PHP_SELF'];
 
-    $path = ereg_replace('/[^/]+$','/',$path);
-    $path = ereg_replace('^/','',$path);
-    $path = ereg_replace('/$','',$path);
+    $path = preg_replace('#/[^/]+$#','/',$path);
+    $path = preg_replace('#^/#','',$path);
+    $path = preg_replace('#/$#','',$path);
 
     if (strcmp($path,'') == 0) {
       $global_bread_crumbs = array();

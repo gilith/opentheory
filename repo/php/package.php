@@ -360,7 +360,7 @@ class PackageTable extends DatabaseTable {
 
     $pkgs = array();
 
-    while ($row = mysql_fetch_array($result)) {
+    while ($row = mysqli_fetch_assoc($result)) {
       $pkgs[] = from_row_package($row);
     }
 

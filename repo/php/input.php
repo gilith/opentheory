@@ -116,7 +116,7 @@ function browser() {
 function is_mobile() {
   $b = browser();
 
-  return ereg('iPhone',$b);
+  return preg_match('/iPhone/',$b);
 }
 
 function is_script() {
