@@ -345,6 +345,14 @@ documentation:
 tarball: clean doc/DONT-RELEASE Makefile.dev
 	cd .. ; COPYFILE_DISABLE=true tar cvzhf opentheory/release/opentheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
 
+.PHONY: release-instructions
+release-instructions:
+	@echo "Completed release, now do the following:"
+	@echo "1. git add and commit all changes"
+	@perl -ne 'if ($$_ =~ /^opentheory ([0-9.]+) \(release ([0-9]+)\),$$/) { print "2. git tag -a v$$1.$$2 -s -m \"Version $$1 (release $$2)\"\n"; }' doc/download.html
+	@echo "3. git push --tags"
+	@echo "4. Goto github > opentheory > releases > Create a new release"
+
 .PHONY: release
 release: release-stamp mosml mlton polyml documentation
 	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.png
@@ -355,4 +363,4 @@ release: release-stamp mosml mlton polyml documentation
 	rsync -azv --delete --checksum --size-only --exclude=.gitignore -e ssh $(RELEASE_DIR)/ joe@laurelin.gilith.com:www/gilith/software/opentheory
 	ssh joe@laurelin.gilith.com '/bin/bash -l bin/install-opentheory'
 	@if GIT_PAGER='' git grep '[*][*][*]' ; then echo "WARNING: TODO comments discovered" ; fi
-	@echo Completed release
+	$(MAKE) release-instructions
