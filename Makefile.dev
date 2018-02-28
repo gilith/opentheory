@@ -349,9 +349,10 @@ tarball: clean doc/DONT-RELEASE Makefile.dev
 release-instructions:
 	@echo "Completed release, now do the following:"
 	@echo "1. git add and commit all changes"
-	@perl -ne 'if ($$_ =~ /^opentheory ([0-9.]+) \(release ([0-9]+)\),$$/) { print "2. git tag -a v$$1.$$2 -s -m \"Version $$1 (release $$2)\"\n"; }' doc/download.html
+	@perl -ne 'if ($$_ =~ /^opentheory ([0-9.]+) \(release ([0-9]+)\),$$/) { print "2. git tag -a -s v$$1.$$2 -m \"Version $$1 (release $$2)\"\n"; }' doc/download.html
 	@echo "3. git push --tags"
-	@echo "4. Goto github > opentheory > releases > Create a new release"
+	@echo "4. Browse to github > opentheory > releases > Latest release"
+	@echo "5. Add the release name and tarball"
 
 .PHONY: release
 release: release-stamp mosml mlton polyml documentation
