@@ -582,7 +582,7 @@ packages is to use the
 package management tool. For more information on OpenTheory please
 refer to the
 
-<a href="http://www.gilith.com/research/opentheory/">project homepage</a>.</p>' .
+<a href="http://www.gilith.com/opentheory/">project homepage</a>.</p>' .
 
 '<h2>Recently Uploaded Packages <span class="more">[' .
 

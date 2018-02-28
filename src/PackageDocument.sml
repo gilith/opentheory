@@ -262,7 +262,7 @@ local
             let
               val attrs =
                   Html.singletonAttrs
-                    ("href","http://www.gilith.com/research/opentheory")
+                    ("href","http://www.gilith.com/opentheory")
 
               val text = "OpenTheory"
             in

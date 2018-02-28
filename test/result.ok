@@ -441,11 +441,11 @@ refresh = 604800
 
 [license]
 name = MIT
-url = http://www.gilith.com/research/opentheory/licenses/MIT.txt
+url = http://www.gilith.com/opentheory/licenses/MIT.txt
 
 [license]
 name = HOLLight
-url = http://www.gilith.com/research/opentheory/licenses/HOLLight.txt
+url = http://www.gilith.com/opentheory/licenses/HOLLight.txt
 
 [cleanup]
 auto = 3600

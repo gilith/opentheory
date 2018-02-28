@@ -45,7 +45,7 @@ val remoteDefaultRemoteRefresh = Time.fromSeconds 43200;  (* 12 hours *)
 
 (* License constants *)
 
-val licenseUrlDirectory = "http://www.gilith.com/research/opentheory/licenses";
+val licenseUrlDirectory = "http://www.gilith.com/opentheory/licenses";
 
 val mitLicenseName = "MIT"
 and mitLicenseUrl = licenseUrlDirectory ^ "/" ^ "MIT.txt";
