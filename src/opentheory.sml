@@ -19,9 +19,9 @@ and rootHomeDir = ".opentheory";
 
 val program = "opentheory";
 
-val version = "1.3";
+val version = "1.4";
 
-val release = " (release 20180226)";
+val release = " (release 20180301)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 

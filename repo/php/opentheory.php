@@ -370,6 +370,19 @@ function opentheory_staged_timestamp($name_version) {
   return $timestamp;
 }
 
+function opentheory_set_timestamp($name_version, $timestamp) {
+  isset($name_version) or trigger_error('bad name_version');
+  isset($timestamp) or trigger_error('bad timestamp');
+
+  $file = site_path($name_version->tarball_path());
+
+  $mod_time = $timestamp->to_datetime($timestamp);
+
+  if (!touch($file,$mod_time)) {
+    trigger_error('couldn\'t change timestamp for file ' . $file);
+  }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Query whether a package is empty.
 ///////////////////////////////////////////////////////////////////////////////

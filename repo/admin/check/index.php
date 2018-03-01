@@ -112,7 +112,8 @@ $this->_select_submit->select() .
     parent::SelectValue($field);
 
     $this->_select_submit =
-      new SelectSubmit($this->field() . 'x', 'sync timestamps');
+      new SelectSubmit($this->field() . 'x',
+                       'change package timestamps to match database records');
 
     if ($this->submitted()) { $this->validate(); }
   }
@@ -280,7 +281,20 @@ if ($select_staged->submitted()) {
 }
 
 if ($select_sync->submitted()) {
-  trigger_error('synchronizing timestamps is not implemented');
+  $out_of_sync = packages_out_of_sync();
+
+  $n = count($out_of_sync);
+
+  for ($i = 0; $i < $n; ++$i) {
+    $data = $out_of_sync[$i];
+    $namever = $data[0];
+
+    $pkg = find_package_by_name_version($namever);
+    isset($pkg) or trigger_error('package disappeared from database');
+    $registered = $pkg->registered();
+
+    opentheory_set_timestamp($namever,$registered);
+  }
 
   if (is_script()) {
     output_script('successfully synchronized package timestamps');
@@ -307,7 +321,6 @@ if ($select->submitted()) {
 
       $issue = '<ul>';
 
-      $i = 0;
       for ($i = 0; $i < $n; ++$i) {
         $namever = $unregistered_staged[$i];
 
@@ -323,7 +336,8 @@ if ($select->submitted()) {
           $k = $n - 2 * SHORT_UNREGISTERED_STAGED_PACKAGES;
 
           $issue .=
-'<li><em>...' . $k . ' unregistered staged packages omitted...</em></li>';
+'</ul><p><em>...' . pretty_number($k) .
+' unregistered staged packages omitted...</em></p><ul>';
         }
       }
 
@@ -332,7 +346,7 @@ if ($select->submitted()) {
       $select_staged->set_value($unregistered_staged_names);
 
       $issues[] =
-'<h2>Issue: ' . $n . ' Unregistered Staged Package' .
+'<h2>Issue: ' . pretty_number($n) . ' Unregistered Staged Package' .
 (($n == 1) ? '' : 's') .
 '</h2>' .
 $issue .
@@ -349,7 +363,6 @@ site_form(bread_crumbs(),
 
       $issue = '<ul>';
 
-      $i = 0;
       for ($i = 0; $i < $n; ++$i) {
         if ($n <= 2 * SHORT_PACKAGES_OUT_OF_SYNC + 1 ||
             $i < SHORT_PACKAGES_OUT_OF_SYNC ||
@@ -378,14 +391,15 @@ site_form(bread_crumbs(),
           $k = $n - 2 * SHORT_PACKAGES_OUT_OF_SYNC;
 
           $issue .=
-'<li><em>...' . $k . ' unsynchronized packages omitted...</em></li>';
+'</ul><p><em>...' . pretty_number($k) .
+' unsynchronized packages omitted...</em></p><ul>';
         }
       }
 
       $issue .= '</ul>';
 
       $issues[] =
-'<h2>Issue: ' . $n . ' Package Timestamp' .
+'<h2>Issue: ' . pretty_number($n) . ' Package Timestamp' .
 (($n == 1) ? '' : 's') .
 ' Out of Sync</h2>' .
 $issue .

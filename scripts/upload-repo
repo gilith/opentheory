@@ -23,8 +23,8 @@ my @EXCLUSIONS =
    ('.DS_Store',
     '.gitignore');
 
-my $user = ($opt_l ? "gilith" : "joe");
-my $host = ($opt_l ? "login.gilith.com" : "localhost");
+my $user = "joe";
+my $host = "localhost";
 
 sub upload_dir {
     (scalar @_ == 3) or die;
@@ -75,7 +75,7 @@ if ($opt_l) {
     }
 }
 
-my $repo_remote_dir = ($opt_l ? "public_opentheory" : "www/mordor");
+my $repo_remote_dir = ($opt_l ? "www/opentheory" : "www/mordor");
 upload_dir "repo", $repo_remote_dir, \@repo_exclusions;
 
 __END__
