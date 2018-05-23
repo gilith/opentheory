@@ -141,7 +141,8 @@ SRC = \
   src/Haskell.sig src/Haskell.sml \
   src/RepositoryQuery.sig src/RepositoryQuery.sml \
   src/Syntax.sig src/Syntax.sml \
-  src/Options.sig src/Options.sml
+  src/Options.sig src/Options.sml \
+  src/Tool.sig src/Tool.sml
 
 EXTRA_SRC =
 

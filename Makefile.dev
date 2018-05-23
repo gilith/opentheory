@@ -336,7 +336,7 @@ RELEASE_STAMP = scripts/release_stamp
 
 .PHONY: release-stamp
 release-stamp: $(RELEASE_STAMP)
-	 $(RELEASE_STAMP) -p opentheory doc/*.html src/opentheory.sml
+	 $(RELEASE_STAMP) -p opentheory doc/*.html src/Tool.sml
 
 .PHONY: documentation
 documentation:
