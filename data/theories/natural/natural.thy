@@ -1,5 +1,5 @@
 name: natural
-version: 1.107
+version: 1.108
 description: The natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -45,7 +45,7 @@ add {
   import: dest
   import: numeral
   import: order
-  package: natural-add-1.67
+  package: natural-add-1.68
 }
 
 mult {
@@ -64,7 +64,7 @@ div {
   import: order
   import: add
   import: mult
-  package: natural-div-1.52
+  package: natural-div-1.53
 }
 
 exp {
