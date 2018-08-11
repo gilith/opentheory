@@ -363,7 +363,7 @@ release: release-stamp mosml mlton polyml documentation
 	cp -v doc/favicon.ico $(RELEASE_DIR)/
 	cp -v doc/MIT-LICENSE $(RELEASE_DIR)/
 	$(MAKE) tarball
-	rsync -azv --delete --checksum --size-only --exclude=.gitignore -e ssh $(RELEASE_DIR)/ joe@laurelin.gilith.com:www/gilith/software/opentheory
-	ssh joe@laurelin.gilith.com '/bin/bash -l bin/install-opentheory'
+	rsync -azv --delete --checksum --size-only --exclude=.gitignore -e ssh $(RELEASE_DIR)/ joe@login.gilith.com:www/gilith/software/opentheory
+	ssh joe@login.gilith.com '/bin/bash -l bin/install-opentheory'
 	@if GIT_PAGER='' git grep '[*][*][*]' ; then echo "WARNING: TODO comments discovered" ; fi
 	$(MAKE) release-instructions
