@@ -1,5 +1,5 @@
 name: base
-version: 1.212
+version: 1.213
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -47,7 +47,7 @@ function {
 pair {
   import: bool
   import: function
-  package: pair-1.29
+  package: pair-1.30
 }
 
 natural {

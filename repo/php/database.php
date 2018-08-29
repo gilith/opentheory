@@ -33,7 +33,7 @@ function database_connection() {
                        DATABASE_PASSWORD,
                        DATABASE_NAME);
 
-      if (mysqli_connect_errno($global_database_connection)) {
+      if (mysqli_connect_errno()) {
         if (--$tries <= 0) {
           trigger_error('failed to connect to MySQL server: ' .
                         mysqli_connect_error());
@@ -75,8 +75,8 @@ function database_query($query) {
 #  var_dump($query);
 
   if (!($result = mysqli_query($connection,$query))) {
-    trigger_error('MySQL error ' . mysqli_errno() . ': ' . mysqli_error()
-                  . "\n\n" . $query);
+    trigger_error('MySQL error ' . mysqli_errno($connection) . ': ' .
+                  mysqli_error($connection) . "\n\n" . $query);
   }
 
   return $result;
@@ -199,7 +199,7 @@ class DatabaseTable {
       }
     }
 
-    $query .= "\n" . ') type=MyISAM;';
+    $query .= "\n" . ') ENGINE=MyISAM DEFAULT CHARSET=utf8;';
 
     database_query($query);
   }
