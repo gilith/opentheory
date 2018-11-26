@@ -1,5 +1,5 @@
 name: list
-version: 1.105
+version: 1.106
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -72,20 +72,13 @@ filter {
   package: list-filter-1.55
 }
 
-last {
-  import: def
-  import: dest
-  import: append
-  package: list-last-1.53
-}
-
 reverse {
   import: def
   import: length
   import: set
   import: append
   import: map
-  package: list-reverse-1.49
+  package: list-reverse-1.50
 }
 
 fold {
@@ -94,6 +87,15 @@ fold {
   import: append
   import: reverse
   package: list-fold-1.29
+}
+
+last {
+  import: def
+  import: thm
+  import: dest
+  import: append
+  import: reverse
+  package: list-last-1.54
 }
 
 nth {
@@ -166,9 +168,9 @@ main {
   import: append
   import: map
   import: filter
-  import: last
   import: reverse
   import: fold
+  import: last
   import: nth
   import: replicate
   import: take-drop
