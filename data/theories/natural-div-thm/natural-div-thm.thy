@@ -1,9 +1,9 @@
 name: natural-div-thm
-version: 1.56
+version: 1.57
 description: Properties of natural number division
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory exported on 2018-07-26
+provenance: HOL Light theory exported on 2018-12-23
 requires: bool
 requires: natural-add
 requires: natural-def
