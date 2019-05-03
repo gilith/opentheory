@@ -1,5 +1,5 @@
 name: list
-version: 1.106
+version: 1.107
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -41,7 +41,7 @@ set {
   import: def
   import: dest
   import: length
-  package: list-set-1.55
+  package: list-set-1.56
 }
 
 append {
