@@ -22,6 +22,9 @@ import Arithmetic.Utility
 
 newtype Factor = Factor {unFactor :: Map.Map Natural Natural}
 
+primePowers :: Factor -> [(Natural,Natural)]
+primePowers = Map.toList . unFactor
+
 one :: Factor
 one = Factor {unFactor = Map.empty}
 
@@ -51,6 +54,15 @@ destPrime f =
 
 isPrime :: Factor -> Bool
 isPrime = Maybe.isJust . destPrime
+
+destRSA :: Factor -> Maybe (Natural,Natural)
+destRSA f =
+    case primePowers f of
+      [(p,1),(q,1)] -> Just (p,q)
+      _ -> Nothing
+
+isRSA :: Factor -> Bool
+isRSA = Maybe.isJust . destRSA
 
 multiply :: Factor -> Factor -> Factor
 multiply f1 f2 =
