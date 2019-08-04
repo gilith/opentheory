@@ -14,6 +14,9 @@ import OpenTheory.Primitive.Natural
 import OpenTheory.Natural.Divides
 import qualified OpenTheory.Natural.Bits as Bits
 
+distance :: Natural -> Natural -> Natural
+distance m n = if m <= n then n - m else m - n
+
 functionPower :: (a -> a) -> Natural -> a -> a
 functionPower f =
     loop

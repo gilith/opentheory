@@ -1,5 +1,5 @@
 name: arithmetic
-version: 1.3
+version: 1.4
 category: Number Theory
 synopsis: Natural number arithmetic
 license: MIT
@@ -12,8 +12,9 @@ description:
   This package implements a library of natural number arithmetic functions,
   including Montgomery multiplication, the Miller-Rabin primality test,
   Lucas sequences, the Williams p+1 factorization method, continued fraction
-  representations of natural number square roots, the Jacobi symbol and the
-  Tonelli-Shanks algorithm for finding square roots modulo a prime.
+  representations of natural number square roots, the Jacobi symbol, the
+  Tonelli-Shanks algorithm for finding square roots modulo a prime, and
+  the Chakravala method for solving Pell's equation.
 
 Library
   build-depends:
@@ -32,6 +33,7 @@ Library
     Arithmetic.Lucas,
     Arithmetic.Modular,
     Arithmetic.Montgomery,
+    Arithmetic.Pell,
     Arithmetic.Polynomial,
     Arithmetic.Prime,
     Arithmetic.Prime.Factor,

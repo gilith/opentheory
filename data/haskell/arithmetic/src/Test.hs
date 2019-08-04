@@ -27,6 +27,7 @@ import qualified Arithmetic.ContinuedFraction as ContinuedFraction
 import qualified Arithmetic.Prime.Factor as Factor
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
+import qualified Arithmetic.Pell as Pell
 import qualified Arithmetic.Polynomial as Polynomial
 import qualified Arithmetic.Quadratic as Quadratic
 import qualified Arithmetic.Ring as Ring
@@ -511,6 +512,12 @@ propPolynomialQuotientRemainderMonic np ps qs =
     p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
     q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) (qs ++ [1]))
 
+propPellEquation :: Natural -> Bool
+propPellEquation n =
+    Quadratic.isSquare n || a * a == n * b * b + 1
+  where
+    (a,b) = Pell.solution n
+
 {-
 np = (0 :: Natural)
 ps = ([] :: [Natural])
@@ -585,4 +592,5 @@ main =
        check "Polynomial quotient remainder" propPolynomialQuotientRemainder
        check "Polynomial quotient remainder monic"
          propPolynomialQuotientRemainderMonic
+       check "Pell equation solution" propPellEquation
        return ()

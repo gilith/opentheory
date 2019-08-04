@@ -12,6 +12,7 @@ where
 
 import OpenTheory.Primitive.Natural
 import qualified Data.List as List
+import qualified Data.Maybe as Maybe
 
 import Arithmetic.Utility
 import qualified Arithmetic.ContinuedFraction as ContinuedFraction
@@ -33,6 +34,15 @@ rootCeiling n =
     if sqrtn * sqrtn == n then sqrtn else sqrtn + 1
   where
     sqrtn = rootFloor n
+
+destSquare :: Natural -> Maybe Natural
+destSquare n =
+    if sqrtn * sqrtn == n then Just sqrtn else Nothing
+  where
+    sqrtn = rootFloor n
+
+isSquare :: Natural -> Bool
+isSquare = Maybe.isJust . destSquare
 
 rootContinuedFraction :: Natural -> ContinuedFraction.ContinuedFraction
 rootContinuedFraction n =
