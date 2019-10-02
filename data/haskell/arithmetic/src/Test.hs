@@ -512,21 +512,12 @@ propPolynomialQuotientRemainderMonic np ps qs =
     p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
     q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) (qs ++ [1]))
 
-propPellEquation :: Natural -> Bool
-propPellEquation n =
-    Quadratic.isSquare n || a * a == n * b * b + 1
+propPellEquation :: Natural -> Natural -> Bool
+propPellEquation n ip =
+    a * a == n * b * b + 1
   where
-    (a,b) = Pell.solution n
-
-{-
-np = (0 :: Natural)
-ps = ([] :: [Natural])
-qs = ([] :: [Natural])
-n = np + 2
-r = Modular.ring n
-p = Polynomial.fromCoefficients r (map (Ring.fromNatural r) ps)
-q = Polynomial.fromCoefficients r (map (Ring.fromNatural r) (qs ++ [1]))
--}
+    (a,b) = Pell.solutions n !! i
+    i = fromIntegral (if Quadratic.isSquare n then 0 else ip)
 
 check :: QuickCheck.Testable prop => String -> prop -> IO ()
 check desc prop =
@@ -592,5 +583,5 @@ main =
        check "Polynomial quotient remainder" propPolynomialQuotientRemainder
        check "Polynomial quotient remainder monic"
          propPolynomialQuotientRemainderMonic
-       check "Pell equation solution" propPellEquation
+       check "Pell equation solutions" propPellEquation
        return ()

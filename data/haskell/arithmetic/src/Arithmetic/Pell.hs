@@ -1,6 +1,6 @@
 {- |
 module: Arithmetic.Pell
-description: Pell's equation (a^2 = n*b^2 + 1)
+description: The Pell equation a^2 = n*b^2 + 1
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
@@ -18,7 +18,7 @@ import qualified Arithmetic.Quadratic as Quadratic
 
 -------------------------------------------------------------------------------
 -- Using the Chakravala method to find the fundamental solution of
--- Pell's equation
+-- the Pell equation
 --
 --   a^2 = n*b^2 + 1
 --
@@ -39,7 +39,7 @@ chakravala n =
         b' = (a + b * m) `div` k
         j = case Modular.divide k (Modular.negate k a) b of
               Just i -> i
-              Nothing -> error "pell: couldn't divide"
+              Nothing -> error "Pell.chakravala: couldn't divide"
         m = minM j k
 
     sqrtN = Quadratic.rootFloor n
@@ -51,7 +51,7 @@ chakravala n =
         m_1 = m_0 + k
 
 -------------------------------------------------------------------------------
--- Finding all integer solutions of Pell's equation
+-- Finding all integer solutions of the Pell equation
 -------------------------------------------------------------------------------
 
 solutions :: Natural -> [(Natural,Natural)]
@@ -68,4 +68,4 @@ solution :: Natural -> (Natural,Natural)
 solution n =
     case solutions n of
       _ : ab : _ -> ab
-      _ -> error "Pell's equation a^2 = n*b^2 + 1 has no nontrivial integer solution when n is square"
+      _ -> error "The Pell equation a^2 = n*b^2 + 1 has no nontrivial integer solution when n is square"
