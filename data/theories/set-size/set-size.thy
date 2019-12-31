@@ -1,5 +1,5 @@
 name: set-size
-version: 1.59
+version: 1.60
 description: Finite set cardinality
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: set-size-thm-1.65
+  package: set-size-thm-1.66
 }
 
 main {
