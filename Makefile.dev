@@ -132,8 +132,7 @@ HASKELL_EXTRA_PACKAGES = \
   api-opentheory-unicode \
   decode-utf8 \
   nth-prime \
-  fen2s \
-  arithmetic
+  fen2s
 
 .PHONY: clean-haskell
 clean-haskell: $(OPENTHEORY)
