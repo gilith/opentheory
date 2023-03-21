@@ -3,7 +3,7 @@ version: 1.221
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-homepage: http://opentheory.gilith.com/?pkg=base
+homepage: https://opentheory.gilith.com/?pkg=base
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"

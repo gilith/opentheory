@@ -3,7 +3,7 @@ version: 1.54
 description: Probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-homepage: http://opentheory.gilith.com/?pkg=probability
+homepage: https://opentheory.gilith.com/?pkg=probability
 requires: base
 requires: stream
 show: "Data.Bool"

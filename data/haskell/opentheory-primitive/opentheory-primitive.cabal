@@ -8,7 +8,7 @@ cabal-version: >= 1.8.0.2
 build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
-homepage: http://www.gilith.com/opentheory/
+homepage: https://www.gilith.com/opentheory/
 description:
   The types and values defined in this package extend those in the
   Prelude to provide the core execution platform assumed by Haskell

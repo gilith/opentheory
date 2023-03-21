@@ -212,7 +212,7 @@ else {
 
 <p>The recommended way to upload packages is to use the
 
-<a href="http://www.gilith.com/software/opentheory/">opentheory tool</a>,
+<a href="https://www.gilith.com/software/opentheory/">opentheory tool</a>,
 
 but it is also possible to <i>manually</i> upload package tarballs using the following form:</p>' .
 

@@ -16,7 +16,7 @@ define('SITE_NAME','OpenTheory');
 
 define('SITE_PATH','/home/gilith/public_opentheory');
 
-define('SITE_URL','http://opentheory.gilith.com/');
+define('SITE_URL','https://opentheory.gilith.com/');
 
 ///////////////////////////////////////////////////////////////////////////////
 // OpenTheory repo details.
@@ -38,7 +38,7 @@ define('ADMIN_NAME','Joe Leslie-Hurd');
 
 define('ADMIN_EMAIL','joe@gilith.com');
 
-define('ADMIN_URL','http://www.gilith.com/');
+define('ADMIN_URL','https://www.gilith.com/');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Database.

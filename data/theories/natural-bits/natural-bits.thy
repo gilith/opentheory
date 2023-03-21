@@ -3,7 +3,7 @@ version: 1.72
 description: Natural number to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-homepage: http://opentheory.gilith.com/?pkg=natural-bits
+homepage: https://opentheory.gilith.com/?pkg=natural-bits
 requires: base
 requires: probability
 show: "Data.Bool"

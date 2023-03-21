@@ -37,7 +37,7 @@ and urlRemoteKey = "url";
 (* Remote repository constants *)
 
 val gilithRemoteName = PackageName.gilithRemote
-and gilithRemoteUrl = "http://opentheory.gilith.com/";
+and gilithRemoteUrl = "https://opentheory.gilith.com/";
 
 val defaultRemoteRefresh = Time.fromSeconds 604800;  (* 1 week *)
 
@@ -45,7 +45,7 @@ val remoteDefaultRemoteRefresh = Time.fromSeconds 43200;  (* 12 hours *)
 
 (* License constants *)
 
-val licenseUrlDirectory = "http://www.gilith.com/opentheory/licenses";
+val licenseUrlDirectory = "https://www.gilith.com/opentheory/licenses";
 
 val mitLicenseName = "MIT"
 and mitLicenseUrl = licenseUrlDirectory ^ "/" ^ "MIT.txt";

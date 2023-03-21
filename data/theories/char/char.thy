@@ -3,7 +3,7 @@ version: 1.145
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-homepage: http://opentheory.gilith.com/?pkg=char
+homepage: https://opentheory.gilith.com/?pkg=char
 requires: base
 requires: byte
 requires: natural-bits

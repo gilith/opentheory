@@ -3,7 +3,7 @@ version: 1.135
 description: Bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-homepage: http://opentheory.gilith.com/?pkg=byte
+homepage: https://opentheory.gilith.com/?pkg=byte
 requires: base
 requires: natural-bits
 requires: natural-divides

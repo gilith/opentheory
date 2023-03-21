@@ -577,12 +577,12 @@ site_link(array('packages'),'available packages') .
 ', but the recommended way of downloading and processing theory
 packages is to use the
 
-<a href="http://www.gilith.com/software/opentheory/">opentheory</a>
+<a href="https://www.gilith.com/software/opentheory/">opentheory</a>
 
 package management tool. For more information on OpenTheory please
 refer to the
 
-<a href="http://www.gilith.com/opentheory/">project homepage</a>.</p>' .
+<a href="https://www.gilith.com/opentheory/">project homepage</a>.</p>' .
 
 '<h2>Recently Uploaded Packages <span class="more">[' .
 

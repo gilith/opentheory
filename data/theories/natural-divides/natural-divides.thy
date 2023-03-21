@@ -3,7 +3,7 @@ version: 1.68
 description: The divides relation on natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-homepage: http://opentheory.gilith.com/?pkg=natural-divides
+homepage: https://opentheory.gilith.com/?pkg=natural-divides
 requires: base
 show: "Data.Bool"
 show: "Data.Pair"

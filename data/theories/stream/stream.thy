@@ -3,7 +3,7 @@ version: 1.51
 description: Infinite stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-homepage: http://opentheory.gilith.com/?pkg=stream
+homepage: https://opentheory.gilith.com/?pkg=stream
 requires: base
 show: "Data.Bool"
 show: "Data.List"

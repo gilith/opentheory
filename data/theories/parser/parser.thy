@@ -3,7 +3,7 @@ version: 1.162
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-homepage: http://opentheory.gilith.com/?pkg=parser
+homepage: https://opentheory.gilith.com/?pkg=parser
 requires: base
 show: "Data.Bool"
 show: "Data.List"

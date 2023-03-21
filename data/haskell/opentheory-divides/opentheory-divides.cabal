@@ -8,7 +8,7 @@ cabal-version: >= 1.8.0.2
 build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
-homepage: http://opentheory.gilith.com/?pkg=natural-divides
+homepage: https://opentheory.gilith.com/?pkg=natural-divides
 description:
   The divides relation on natural numbers - this package was automatically
   generated from the OpenTheory package natural-divides-1.66

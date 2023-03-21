@@ -8,7 +8,7 @@ cabal-version: >= 1.8.0.2
 build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
-homepage: http://opentheory.gilith.com/?pkg=base
+homepage: https://opentheory.gilith.com/?pkg=base
 description:
   The standard theory library - this package was automatically generated
   from the OpenTheory package base-1.200

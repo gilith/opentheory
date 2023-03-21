@@ -75,11 +75,11 @@ to clean out any object files.
 
 To report a bug or request an enhancement, please file an issue at [GitHub][OpentheoryIssues].
 
-[OpenTheory]: http://www.gilith.com/opentheory/ "OpenTheory project home page"
+[OpenTheory]: https://www.gilith.com/opentheory/ "OpenTheory project home page"
 [OpentheoryDevelopment]: https://github.com/gilith/opentheory "opentheory tool development"
 [OpentheoryIssues]: https://github.com/gilith/opentheory/issues "opentheory tool issues"
-[OpentheoryRelease]: http://www.gilith.com/software/opentheory/ "opentheory tool release"
-[StandardTheoryLibrary]: http://opentheory.gilith.com/?pkg=base "OpenTheory standard theory library"
+[OpentheoryRelease]: https://www.gilith.com/software/opentheory/ "opentheory tool release"
+[StandardTheoryLibrary]: https://opentheory.gilith.com/?pkg=base "OpenTheory standard theory library"
 [MLton]: http://www.mlton.org/ "MLton compiler"
 [Poly/ML]: http://www.polyml.org/ "Poly/ML compiler"
 [Moscow ML]: http://www.dina.dk/~sestoft/mosml.html "Moscow ML compiler"

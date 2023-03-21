@@ -24,9 +24,9 @@ val name = "opentheory";
 
 val version = "1.4";
 
-val release = " (release 20180810)";
+val release = " (release 20230321)";
 
-val homepage = "http://www.gilith.com/software/opentheory"
+val homepage = "https://www.gilith.com/software/opentheory"
 
 val versionString = name^" "^version^release^"\n";
 

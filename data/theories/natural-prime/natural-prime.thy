@@ -3,7 +3,7 @@ version: 1.87
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-homepage: http://opentheory.gilith.com/?pkg=natural-prime
+homepage: https://opentheory.gilith.com/?pkg=natural-prime
 requires: base
 requires: natural-divides
 requires: stream
