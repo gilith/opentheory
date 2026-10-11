@@ -26,11 +26,13 @@ function stripslashes_deep($value) {
 }
 
 function normalize_user_data() {
-  if (get_magic_quotes_gpc()) {
-    $_POST = array_map('stripslashes_deep', $_POST);
-    $_GET = array_map('stripslashes_deep', $_GET);
-    $_COOKIE = array_map('stripslashes_deep', $_COOKIE);
-  }
+// 2026-10-11: This is unnecessary because magic quotes have been
+// obsolete since PHP 5.4
+//  if (get_magic_quotes_gpc()) {
+//    $_POST = array_map('stripslashes_deep', $_POST);
+//    $_GET = array_map('stripslashes_deep', $_GET);
+//    $_COOKIE = array_map('stripslashes_deep', $_COOKIE);
+//  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
