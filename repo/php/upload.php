@@ -225,7 +225,7 @@ class Upload {
     $this->_obsolete = $obsolete;
   }
 
-  function Upload($id,$initiated,$status,$author,$obsolete) {
+  function __construct($id,$initiated,$status,$author,$obsolete) {
     is_string($id) or trigger_error('bad id');
     isset($initiated) or trigger_error('bad initiated');
     is_string($status) or trigger_error('bad status');
@@ -418,7 +418,7 @@ class UploadTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
-  function UploadTable($table) {
+  function __construct($table) {
     global $all_upload_status;
 
     $fields =
@@ -433,7 +433,7 @@ class UploadTable extends DatabaseTable {
       array('PRIMARY KEY (id)',
             'INDEX (initiated)');
 
-    parent::DatabaseTable($table,$fields,$indexes);
+    parent::__construct($table,$fields,$indexes);
   }
 }
 

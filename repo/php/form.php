@@ -263,7 +263,7 @@ class SelectData {
     return textarea_input($this->field() . $name, $value, $cols, $rows);
   }
 
-  function SelectData($field) {
+  function __construct($field) {
     is_string($field) or trigger_error('bad field');
     $this->_field = $field;
   }
@@ -290,8 +290,8 @@ class SelectValue extends SelectData {
     $this->_error = $error;
   }
 
-  function SelectValue($field) {
-    parent::SelectData($field);
+  function __construct($field) {
+    parent::__construct($field);
   }
 }
 
@@ -304,8 +304,8 @@ class SelectHidden extends SelectValue {
     return $this->hidden_input('',$this->value());
   }
 
-  function SelectHidden($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
     $this->set_value($this->input(''));
   }
 }
@@ -321,8 +321,8 @@ class SelectSubmit extends SelectValue {
     return $this->button_input('',$this->_button);
   }
 
-  function SelectSubmit($field,$button) {
-    parent::SelectValue($field);
+  function __construct($field,$button) {
+    parent::__construct($field);
 
     $this->_button = $button;
 
@@ -339,8 +339,8 @@ class SelectCheckbox extends SelectValue {
     return $this->checkbox_input('','1',$this->value());
   }
 
-  function SelectCheckbox($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
     $this->set_value(bool_from_string($this->input('')));
   }
 }
@@ -390,8 +390,8 @@ class SelectList extends SelectValue {
     return $this->select_input('',false,$select_options);
   }
 
-  function SelectList($field,$options,$required) {
-    parent::SelectValue($field);
+  function __construct($field,$options,$required) {
+    parent::__construct($field);
 
     $this->_options = $options;
     $this->_required = $required;
@@ -430,8 +430,8 @@ class SelectRadio extends SelectValue {
     return implode('&nbsp; &nbsp;', $select_options);
   }
 
-  function SelectRadio($field,$options) {
-    parent::SelectValue($field);
+  function __construct($field,$options) {
+    parent::__construct($field);
 
     $this->_options = $options;
     $this->set_value(from_string($this->input('')));
@@ -465,13 +465,13 @@ class SelectTextArea extends SelectValue {
     return $this->textarea_input('',$this->value(),$this->_cols,$this->_rows);
   }
 
-  function SelectTextArea($field,$required,$cols,$rows) {
+  function __construct($field,$required,$cols,$rows) {
     is_string($field) or trigger_error('bad field');
     is_bool($required) or trigger_error('bad required');
     is_int($cols) or trigger_error('bad cols');
     is_int($rows) or trigger_error('bad rows');
 
-    parent::SelectValue($field);
+    parent::__construct($field);
 
     $this->_required = $required;
     $this->_cols = $cols;
@@ -536,8 +536,8 @@ class SelectText extends SelectValue {
     return $this->hidden_input('',$this->value());
   }
 
-  function SelectText($field,$required,$min,$max) {
-    parent::SelectValue($field);
+  function __construct($field,$required,$min,$max) {
+    parent::__construct($field);
 
     $this->_required = $required;
     $this->_min_length = $min;
@@ -579,8 +579,8 @@ class SelectNumber extends SelectText {
     else { return null; }
   }
 
-  function SelectNumber($field,$required,$max) {
-    parent::SelectText($field, $required, null, $max + 1);
+  function __construct($field,$required,$max) {
+    parent::__construct($field, $required, null, $max + 1);
   }
 }
 
@@ -677,10 +677,10 @@ class SelectDate extends SelectValue {
     parent::set_value($date);
   }
 
-  function SelectDate($field,$required) {
+  function __construct($field,$required) {
     global $all_months;
 
-    parent::SelectValue($field);
+    parent::__construct($field);
 
     $days = array();
     for ($d = 1; $d <= 31; ++$d) {
@@ -789,8 +789,8 @@ class SelectTime extends SelectValue {
     parent::set_value($time);
   }
 
-  function SelectTime($field,$required) {
-    parent::SelectValue($field);
+  function __construct($field,$required) {
+    parent::__construct($field);
 
     $this->_required = $required;
     $this->_select_hour =
@@ -840,8 +840,8 @@ class SelectChecksum extends SelectText {
     }
   }
 
-  function SelectChecksum($field,$required) {
-    parent::SelectText($field, $required, 5, 60);
+  function __construct($field,$required) {
+    parent::__construct($field, $required, 5, 60);
   }
 }
 
@@ -872,8 +872,8 @@ class SelectURL extends SelectText {
     parent::validate();
   }
 
-  function SelectURL($field,$required,$max) {
-    parent::SelectText($field, $required, null, $max);
+  function __construct($field,$required,$max) {
+    parent::__construct($field, $required, null, $max);
   }
 }
 
@@ -906,8 +906,8 @@ class SelectFile extends SelectValue {
     return $this->file_input('');
   }
 
-  function SelectFile($field,$required) {
-    parent::SelectValue($field);
+  function __construct($field,$required) {
+    parent::__construct($field);
 
     $this->_required = $required;
 

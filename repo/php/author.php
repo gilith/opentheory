@@ -49,7 +49,7 @@ class PackageAuthor {
     return ($this->name() . ' <' . $this->email() . '>');
   }
 
-  function PackageAuthor($id,$name,$email) {
+  function __construct($id,$name,$email) {
     is_int($id) or trigger_error('bad id');
     is_string($name) or trigger_error('bad name');
     is_string($email) or trigger_error('bad email');
@@ -143,7 +143,7 @@ class PackageAuthorTable extends DatabaseTable {
     return $author;
   }
 
-  function PackageAuthorTable($table) {
+  function __construct($table) {
     $fields =
       array('id' => 'int(' . PACKAGE_AUTHOR_ID_DIGITS . ') NOT NULL',
             'name' => 'varchar(' . PACKAGE_AUTHOR_NAME_CHARS . ') NOT NULL',
@@ -153,7 +153,7 @@ class PackageAuthorTable extends DatabaseTable {
       array('PRIMARY KEY (id)',
             'INDEX (name,email)');
 
-    parent::DatabaseTable($table,$fields,$indexes);
+    parent::__construct($table,$fields,$indexes);
   }
 }
 

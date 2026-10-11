@@ -101,8 +101,8 @@ $this->_select_submit->select() .
     trigger_error('can\'t set a package upload value');
   }
 
-  function SelectUploadData($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
 
     $this->_select_upload = new SelectChecksum($this->field() . 'u', false);
     $this->_select_tarball = new SelectFile($this->field() . 't', true);

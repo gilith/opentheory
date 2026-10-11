@@ -24,7 +24,7 @@ $error_output = ERROR_OUTPUT_LEVEL;
 // Define a custom error handler.
 ///////////////////////////////////////////////////////////////////////////////
 
-function error_handler($errno, $errstr, $errfile, $errline, $errcontext) {
+function error_handler($errno, $errstr, $errfile, $errline) {
   global $error_output;
 
   $fatal = true;

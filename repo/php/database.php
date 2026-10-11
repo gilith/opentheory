@@ -249,7 +249,7 @@ class DatabaseTable {
     $this->reset_add_indexes();
   }
 
-  function DatabaseTable($table,$fields,$indexes) {
+  function __construct($table,$fields,$indexes) {
     is_string($table) or trigger_error('bad table name');
     is_array($fields) or trigger_error('bad fields');
     is_array($indexes) or trigger_error('bad indexes');

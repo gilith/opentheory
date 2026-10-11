@@ -44,7 +44,7 @@ class Session {
 
   function to_string() { return $this->id(); }
 
-  function Session($id,$user,$expires,$mobile) {
+  function __construct($id,$user,$expires,$mobile) {
     is_string($id) or trigger_error('bad id');
     isset($user) or trigger_error('bad user');
     isset($expires) or trigger_error('bad expires');
@@ -166,7 +166,7 @@ class SessionTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
-  function SessionTable($table) {
+  function __construct($table) {
     $fields =
       array('id' => 'char(' . SESSION_ID_CHARS . ') NOT NULL',
             'user' => 'int(' . USER_ID_DIGITS . ') NOT NULL',
@@ -178,7 +178,7 @@ class SessionTable extends DatabaseTable {
             'INDEX (user)',
             'INDEX (expires)');
 
-    parent::DatabaseTable($table,$fields,$indexes);
+    parent::__construct($table,$fields,$indexes);
   }
 }
 
@@ -332,10 +332,10 @@ $site_options = array(
   'd' => 'Auto Detect');
 
 class SelectMobile extends SelectRadio {
-  function SelectMobile($field) {
+  function __construct($field) {
     global $site_options;
 
-    parent::SelectRadio($field,$site_options);
+    parent::__construct($field,$site_options);
   }
 }
 
@@ -405,8 +405,8 @@ $this->_select_submit->select() .
     parent::set_value($data);
   }
 
-  function SelectSessionData($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
 
     $this->_select_mobile = new SelectMobile($this->field() . 'm');
     $this->_select_submit = new SelectSubmit($this->field() . 's', 'update');

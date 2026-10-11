@@ -229,7 +229,7 @@ class Package {
 
   function mark_obsolete() { $this->_obsolete = true; }
 
-  function Package($id,$name_version,$description,$author,$license,
+  function __construct($id,$name_version,$description,$author,$license,
                    $registered,$status,$empty_theory,$subtheory,$obsolete)
   {
     is_int($id) or trigger_error('bad id');
@@ -545,7 +545,7 @@ class PackageTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
-  function PackageTable($table) {
+  function __construct($table) {
     global $all_package_status;
 
     $fields =
@@ -568,7 +568,7 @@ class PackageTable extends DatabaseTable {
             'INDEX (status,subtheory,obsolete,empty_theory,name)',
             'INDEX (status,subtheory,registered)');
 
-    parent::DatabaseTable($table,$fields,$indexes);
+    parent::__construct($table,$fields,$indexes);
   }
 }
 

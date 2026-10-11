@@ -52,7 +52,7 @@ class User {
     return (strcmp($encrypted,$this->_encrypted_password) == 0);
   }
 
-  function User($id,$name,$encrypted_password,$privilege) {
+  function __construct($id,$name,$encrypted_password,$privilege) {
     is_int($id) or trigger_error('bad id');
     is_string($name) or trigger_error('bad name');
     is_string($encrypted_password) or trigger_error('bad encrypted_password');
@@ -126,7 +126,7 @@ class UserTable extends DatabaseTable {
     return $user;
   }
 
-  function UserTable($table) {
+  function __construct($table) {
     global $all_privileges;
 
     $fields =
@@ -141,7 +141,7 @@ class UserTable extends DatabaseTable {
       array('PRIMARY KEY (id)',
             'INDEX (name)');
 
-    parent::DatabaseTable($table,$fields,$indexes);
+    parent::__construct($table,$fields,$indexes);
   }
 }
 
@@ -170,8 +170,8 @@ class SelectUserName extends SelectText {
     return $this->text_input('',$this->value(),USER_NAME_CHARS);
   }
 
-  function SelectUserName($field,$required) {
-    parent::SelectText($field,$required,null,USER_NAME_CHARS);
+  function __construct($field,$required) {
+    parent::__construct($field,$required,null,USER_NAME_CHARS);
   }
 }
 
@@ -188,8 +188,8 @@ class SelectUserPassword extends SelectText {
     return $this->password_input('',$this->value(),USER_NAME_CHARS);
   }
 
-  function SelectUserPassword($field,$required) {
-    parent::SelectText($field,$required,null,null);
+  function __construct($field,$required) {
+    parent::__construct($field,$required,null,null);
   }
 }
 
@@ -274,8 +274,8 @@ $this->_select_submit->select() .
 '</table>';
   }
 
-  function SelectLoginForm($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
 
     $this->_select_login = new SelectUserName($this->field() . 'u', true);
     $this->_select_password = new SelectUserPassword($this->field() . 'p', true);

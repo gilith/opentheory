@@ -111,7 +111,7 @@ class ConfirmUpload {
     return external_site_url($path,$args);
   }
 
-  function ConfirmUpload($id,$type,$sent,$upload) {
+  function __construct($id,$type,$sent,$upload) {
     is_string($id) or trigger_error('bad id');
     is_confirm_upload_type($type) or trigger_error('bad type');
     isset($sent) or trigger_error('bad sent');
@@ -192,7 +192,7 @@ class ConfirmUploadTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
-  function ConfirmUploadTable($table) {
+  function __construct($table) {
     global $all_confirm_upload_type;
 
     $fields =
@@ -205,7 +205,7 @@ class ConfirmUploadTable extends DatabaseTable {
     $indexes =
       array('PRIMARY KEY (id)');
 
-    parent::DatabaseTable($table,$fields,$indexes);
+    parent::__construct($table,$fields,$indexes);
   }
 }
 

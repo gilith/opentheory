@@ -61,8 +61,8 @@ $this->_select_submit->select() .
     $this->_select_config->set_value($value);
   }
 
-  function SelectConfigData($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
 
     $this->_select_config =
       new SelectTextArea($this->field() . 'c', true,

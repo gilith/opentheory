@@ -106,7 +106,7 @@ class PackageGraphTable extends DatabaseTable {
       WHERE child = ' . database_value($pkg_id) . ';');
   }
 
-  function PackageGraphTable($table) {
+  function __construct($table) {
     $fields =
       array('parent' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL',
             'child' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL');
@@ -115,7 +115,7 @@ class PackageGraphTable extends DatabaseTable {
       array('PRIMARY KEY (parent,child)',
             'INDEX (child,parent)');
 
-    parent::DatabaseTable($table,$fields,$indexes);
+    parent::__construct($table,$fields,$indexes);
   }
 }
 

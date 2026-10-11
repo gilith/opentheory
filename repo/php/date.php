@@ -141,7 +141,7 @@ class TimeInterval {
     return $n . ' year' . (($n == 1) ? '' : 's');
   }
 
-  function TimeInterval($t) {
+  function __construct($t) {
     is_int($t) or is_float($t) or trigger_error('bad t');
 
     $this->_seconds = (float)$t;
@@ -1051,7 +1051,7 @@ class TimePoint {
     return new TimeInterval($t);
   }
 
-  function TimePoint() {
+  function __construct() {
     $this->_year = null;
     $this->_month = null;
     $this->_day = null;

@@ -60,8 +60,8 @@ $this->_select_submit->select() .
     $this->_select_packages->set_value($value);
   }
 
-  function SelectStagedData($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
 
     $this->_select_packages =
       new SelectHidden($this->field() . 'p');
@@ -108,8 +108,8 @@ $this->_select_submit->select() .
     return $this->_select_submit->is_value();
   }
 
-  function SelectSyncData($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
 
     $this->_select_submit =
       new SelectSubmit($this->field() . 'x',
@@ -182,8 +182,8 @@ $this->_select_submit->select() .
     $this->_select_sync->set_value($value['sync']);
   }
 
-  function SelectCheckData($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
 
     $this->_select_staged =
       new SelectCheckbox($this->field() . 'u');

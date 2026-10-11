@@ -100,7 +100,7 @@ class UploadPackageTable extends DatabaseTable {
       WHERE package = ' . database_value($pkg_id) . ';');
   }
 
-  function UploadPackageTable($table) {
+  function __construct($table) {
     $fields =
       array('upload' => 'char(' . UPLOAD_ID_CHARS . ') NOT NULL',
             'sequence' => 'int(' . UPLOAD_PACKAGE_ID_DIGITS . ') NOT NULL',
@@ -109,7 +109,7 @@ class UploadPackageTable extends DatabaseTable {
     $indexes =
       array('PRIMARY KEY (upload,sequence)');
 
-    parent::DatabaseTable($table,$fields,$indexes);
+    parent::__construct($table,$fields,$indexes);
   }
 }
 

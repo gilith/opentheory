@@ -203,7 +203,7 @@ class PackageNameVersion {
     return site_link($path,$text);
   }
 
-  function PackageNameVersion($name,$version) {
+  function __construct($name,$version) {
     is_string($name) or trigger_error('bad name');
     is_string($version) or trigger_error('bad version');
 

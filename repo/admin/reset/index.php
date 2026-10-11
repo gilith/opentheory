@@ -63,8 +63,8 @@ $this->_select_submit->select() .
     $this->_select_delete->set_value($value);
   }
 
-  function SelectResetData($field) {
-    parent::SelectValue($field);
+  function __construct($field) {
+    parent::__construct($field);
 
     $this->_select_delete =
       new SelectCheckbox($this->field() . 'd');

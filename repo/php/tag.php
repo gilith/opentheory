@@ -44,7 +44,7 @@ class PackageTag {
 
   function to_string() { return ($this->name() . ': ' . $this->value()); }
 
-  function PackageTag($name,$value) {
+  function __construct($name,$value) {
     is_string($name) or trigger_error('bad name');
     is_string($value) or trigger_error('bad value');
 

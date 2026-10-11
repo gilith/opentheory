@@ -81,7 +81,7 @@ class SelectPrivilege extends SelectList {
     return PUBLIC_PRIVILEGE;
   }
 
-  function SelectPrivilege($field,$required) {
+  function __construct($field,$required) {
     global $all_privileges;
 
     $options = array();
@@ -89,7 +89,7 @@ class SelectPrivilege extends SelectList {
       $options[$priv] = $priv;
     }
 
-    parent::SelectList($field,$options,$required);
+    parent::__construct($field,$options,$required);
   }
 }
 
